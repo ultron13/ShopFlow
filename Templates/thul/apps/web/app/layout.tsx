@@ -3,22 +3,37 @@ import './globals.css'
 import { Providers } from '@/components/providers'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
+import { PopiaConsent } from '@/components/popia-consent'
+import { LoadSheddingBanner } from '@/components/loadshedding-banner'
+import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
 
 export const metadata: Metadata = {
-  title: { default: 'ShopFlow', template: '%s | ShopFlow' },
-  description: 'Premium products, delivered fast.',
+  title: { default: 'ShopFlow SA', template: '%s | ShopFlow SA' },
+  description: 'Buy fresh fruit & veg direct from SA street vendors near you.',
+  manifest: '/manifest.json',
+  themeColor: '#4f46e5',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ShopFlow SA' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#4f46e5" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body>
         <Providers>
+          <LoadSheddingBanner />
           <div className="flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <PopiaConsent />
+          <PwaInstallPrompt />
         </Providers>
       </body>
     </html>

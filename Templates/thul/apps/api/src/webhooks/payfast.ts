@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { verifyPayfastSignature } from '../services/payfast'
 import { prisma } from '@shopflow/db'
 import { sendOrderConfirmation } from '../services/email'
+import { sendSms, orderConfirmedSms } from '../services/sms'
 
 export async function payfastWebhookHandler(req: Request, res: Response) {
   const params = req.body as Record<string, string>
@@ -41,6 +42,10 @@ export async function payfastWebhookHandler(req: Request, res: Response) {
     }
 
     if (order.userId) await prisma.cartItem.deleteMany({ where: { userId: order.userId } })
+
+    const orderNum = order.id.slice(-8).toUpperCase()
+    const phone = params['cell_number']
+    if (phone) await sendSms(phone, orderConfirmedSms(orderNum, Number(order.total))).catch(() => {})
 
     const toEmail = params['email_address'] ?? order.guestEmail
     if (toEmail) {

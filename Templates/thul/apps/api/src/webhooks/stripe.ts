@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { stripe as getStripe } from '../services/stripe'
 import { prisma } from '@shopflow/db'
 import { sendOrderConfirmation } from '../services/email'
+import { sendSms, orderConfirmedSms } from '../services/sms'
 
 export async function stripeWebhookHandler(req: Request, res: Response) {
   const sig = req.headers['stripe-signature']
@@ -61,6 +62,13 @@ export async function stripeWebhookHandler(req: Request, res: Response) {
       // Clear user cart if signed-in purchase
       if (order.userId) {
         await prisma.cartItem.deleteMany({ where: { userId: order.userId } })
+      }
+
+      // SMS notification
+      const orderNum = order.id.slice(-8).toUpperCase()
+      const phone = session.customer_details?.phone
+      if (phone) {
+        await sendSms(phone, orderConfirmedSms(orderNum, Number(order.total))).catch(() => {})
       }
 
       // Send confirmation email

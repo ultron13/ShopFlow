@@ -12,6 +12,11 @@
   }
 }
 
+/* Data-light mode: reduce image quality and disable heavy visuals */
+html.data-light img { filter: contrast(0.95) brightness(1.02); image-rendering: auto; }
+html.data-light * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+html.data-light .aspect-square { background: #f3f4f6 !important; }
+
 @layer utilities {
   .line-clamp-2 {
     overflow: hidden;

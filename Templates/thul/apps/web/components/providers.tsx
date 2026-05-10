@@ -7,6 +7,7 @@ import superjson from 'superjson'
 import { trpc } from '@/lib/trpc'
 import { SessionProvider } from 'next-auth/react'
 import { Toaster } from 'react-hot-toast'
+import { I18nProvider } from '@/lib/i18n'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -38,8 +39,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster position="top-right" />
+          <I18nProvider>
+            {children}
+            <Toaster position="top-right" />
+          </I18nProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </SessionProvider>

@@ -62,6 +62,7 @@ model User {
   wishlist  WishlistItem[]
   addresses Address[]
   cart      CartItem[]
+  vendor    Vendor?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -206,8 +207,15 @@ model Order {
   total           Decimal     @db.Decimal(10, 2)
   discount        Decimal     @default(0) @db.Decimal(10, 2)
 
-  shippingAddress Json
-  notes           String?
+  shippingAddress  Json
+  deliveryGpsLat   Float?
+  deliveryGpsLng   Float?
+  deliveryNotes    String?
+  courierService   String?
+  isClickAndCollect Boolean   @default(false)
+  collectPointId   String?
+  collectPoint     CollectPoint? @relation(fields: [collectPointId], references: [id])
+  notes            String?
 
   couponId String?
   coupon   Coupon? @relation(fields: [couponId], references: [id])
@@ -225,6 +233,53 @@ model Order {
   @@index([paymentMethod])
   @@map("orders")
 }
+
+model CollectPoint {
+  id       String  @id @default(cuid())
+  name     String
+  address  String
+  city     String
+  province String
+  gpsLat   Float?
+  gpsLng   Float?
+  type     String  @default("spaza") // spaza | school | church | pudo_locker
+  isActive Boolean @default(true)
+
+  orders Order[]
+
+  @@map("collect_points")
+}
+
+model Vendor {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  businessName String
+  description  String?
+  phone        String?
+  whatsapp     String?
+  address      String?
+  city         String?
+  province     String  @default("Limpopo")
+  gpsLat       Float?
+  gpsLng       Float?
+  category     String?
+  imageUrl     String?
+  permitNumber String?
+  vatNumber    String?
+  vatRate      Decimal @default(0) @db.Decimal(4, 2)
+  isVerified   Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([province])
+  @@index([isActive])
+  @@map("vendors")
+}
+
 
 model OrderItem {
   id        String  @id @default(cuid())

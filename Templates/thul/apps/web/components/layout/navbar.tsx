@@ -2,16 +2,32 @@
 
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { ShoppingCart, User, Search, Package, Menu, X } from 'lucide-react'
+import { ShoppingCart, User, Search, Package, Menu, X, Zap } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore } from '@/lib/cart-store'
 import { CartSidebar } from '@/components/store/cart-sidebar'
+import { LanguageSelector } from '@/components/language-selector'
+import { useI18n } from '@/lib/i18n'
+
+function useDataLight() {
+  if (typeof window === 'undefined') return { on: false, toggle: () => {} }
+  const [on, setOn] = useState(() => localStorage.getItem('data-light') === '1')
+  function toggle() {
+    const next = !on
+    setOn(next)
+    localStorage.setItem('data-light', next ? '1' : '0')
+    document.documentElement.classList.toggle('data-light', next)
+  }
+  return { on, toggle }
+}
 
 export function Navbar() {
   const { data: session } = useSession()
+  const { t } = useI18n()
   const count = useCartStore((s) => s.count())
   const [cartOpen, setCartOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const dataLight = useDataLight()
 
   return (
     <>
@@ -22,25 +38,24 @@ export function Navbar() {
             ShopFlow
           </Link>
 
-          <div className="hidden gap-6 md:flex">
-            <Link href="/products" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              All Products
-            </Link>
-            <Link href="/products?categorySlug=electronics" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              Electronics
-            </Link>
-            <Link href="/products?categorySlug=clothing" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              Clothing
-            </Link>
-            <Link href="/products?categorySlug=home-kitchen" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              Home & Kitchen
-            </Link>
-            <Link href="/stokvel" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-              🤝 Stokvel
-            </Link>
+          <div className="hidden gap-5 md:flex items-center">
+            <Link href="/products" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.products}</Link>
+            <Link href="/vendors"  className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.vendors}</Link>
+            <Link href="/seasonal" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.seasonal}</Link>
+            <Link href="/stokvel"  className="text-sm font-medium text-indigo-600 hover:text-indigo-800">🤝 {t.nav.stokvel}</Link>
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
+              <LanguageSelector />
+              <button
+                onClick={dataLight.toggle}
+                title={dataLight.on ? t.dataLight.on : t.dataLight.off}
+                className={`rounded-lg p-1.5 text-xs font-medium transition ${dataLight.on ? 'bg-yellow-100 text-yellow-700' : 'text-gray-400 hover:bg-gray-100'}`}
+              >
+                <Zap className="h-4 w-4" />
+              </button>
+            </div>
             <Link
               href="/products"
               className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
@@ -104,7 +119,7 @@ export function Navbar() {
         {menuOpen && (
           <div className="border-t bg-white px-4 py-3 md:hidden">
             <div className="flex flex-col gap-3">
-              {['All Products:/products', 'Electronics:/products?categorySlug=electronics', 'Clothing:/products?categorySlug=clothing', 'Home & Kitchen:/products?categorySlug=home-kitchen', '🤝 Stokvel:/stokvel'].map((item) => {
+              {[`${t.nav.products}:/products`, `${t.nav.vendors}:/vendors`, `${t.nav.seasonal}:/seasonal`, `🤝 ${t.nav.stokvel}:/stokvel`].map((item) => {
                 const [label, href] = item.split(':') as [string, string]
                 return (
                   <Link key={href} href={href} className="text-sm font-medium text-gray-700" onClick={() => setMenuOpen(false)}>

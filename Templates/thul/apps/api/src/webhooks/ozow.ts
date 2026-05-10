@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { verifyOzowHash } from '../services/ozow'
 import { prisma } from '@shopflow/db'
 import { sendOrderConfirmation } from '../services/email'
+import { sendSms, orderConfirmedSms } from '../services/sms'
 
 export async function ozowWebhookHandler(req: Request, res: Response) {
   const body = req.body as Record<string, string>
@@ -43,6 +44,10 @@ export async function ozowWebhookHandler(req: Request, res: Response) {
     }
 
     if (order.userId) await prisma.cartItem.deleteMany({ where: { userId: order.userId } })
+
+    const orderNum = order.id.slice(-8).toUpperCase()
+    const phone = body['CustomerMobileNumber']
+    if (phone) await sendSms(phone, orderConfirmedSms(orderNum, Number(order.total))).catch(() => {})
 
     const toEmail = body['EmailAddress'] ?? order.guestEmail
     if (toEmail) {

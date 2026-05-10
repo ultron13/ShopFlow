@@ -11,6 +11,14 @@ import Image from 'next/image'
 
 type PaymentMethod = 'STRIPE' | 'PAYFAST' | 'OZOW' | 'SNAPSCAN' | 'COD'
 
+const COURIERS = [
+  { id: 'pudo',     label: 'Pudo Locker Network',  description: 'Drop-to-locker, collect near you' },
+  { id: 'tcg',      label: 'The Courier Guy',       description: 'Door-to-door across SA'          },
+  { id: 'aramex',   label: 'Aramex SA',             description: 'Reliable nationwide delivery'     },
+  { id: 'fastway',  label: 'Fastway SA',            description: 'Same-day in major metros'         },
+  { id: 'collect',  label: 'Click & Collect',       description: 'Pick up at a nearby spaza / community point' },
+]
+
 const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; description: string; icon: string }[] = [
   { id: 'STRIPE',   label: 'Credit / Debit Card', description: 'Visa, Mastercard via Stripe',      icon: '💳' },
   { id: 'PAYFAST',  label: 'PayFast',              description: "SA's leading payment gateway",     icon: '🔵' },
@@ -26,6 +34,10 @@ export default function CheckoutPage() {
   const [guestEmail, setGuestEmail] = useState('')
   const [couponCode, setCouponCode] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PAYFAST')
+  const [courier, setCourier] = useState('tcg')
+  const [address, setAddress] = useState('')
+  const [deliveryNotes, setDeliveryNotes] = useState('')
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
   const [snapScanUrl, setSnapScanUrl] = useState<string | null>(null)
   const payfastFormRef = useRef<HTMLFormElement>(null)
   const [payfastData, setPayfastData] = useState<{ url: string; params: Record<string, string> } | null>(null)
@@ -62,6 +74,11 @@ export default function CheckoutPage() {
       couponCode: couponCode || undefined,
       guestEmail: guestEmail || undefined,
       paymentMethod,
+      courierService: courier,
+      deliveryAddress: address || undefined,
+      deliveryGpsLat: gps?.lat,
+      deliveryGpsLng: gps?.lng,
+      deliveryNotes: deliveryNotes || undefined,
     })
   }
 
@@ -171,6 +188,42 @@ export default function CheckoutPage() {
                   </div>
                 </label>
               ))}
+            </div>
+          </div>
+
+          {/* Delivery */}
+          <div className="rounded-xl border bg-white p-5 space-y-3">
+            <h2 className="font-semibold">Delivery</h2>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Courier / Collection</label>
+              <div className="space-y-2">
+                {COURIERS.map((c) => (
+                  <label key={c.id} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${courier === c.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}`}>
+                    <input type="radio" name="courier" value={c.id} checked={courier === c.id} onChange={() => setCourier(c.id)} className="accent-indigo-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{c.label}</p>
+                      <p className="text-xs text-gray-400">{c.description}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Street address / Market / Area</label>
+              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="No fixed address? Describe your location or use GPS below"
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+            </div>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => navigator.geolocation?.getCurrentPosition((p) => setGps({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {})}
+                className="rounded-lg border px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50">
+                📍 Pin my GPS location
+              </button>
+              {gps && <span className="text-xs text-green-600">GPS set: {gps.lat.toFixed(4)}, {gps.lng.toFixed(4)}</span>}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Delivery notes <span className="text-gray-400">(optional)</span></label>
+              <input value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value)} placeholder="e.g. Blue gate, near the church, call on arrival"
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
             </div>
           </div>
 

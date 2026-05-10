@@ -17,6 +17,11 @@ export const ordersRouter = router({
         couponCode: z.string().optional(),
         guestEmail: z.string().email().optional(),
         paymentMethod: paymentMethodSchema,
+        courierService: z.string().optional(),
+        deliveryAddress: z.string().optional(),
+        deliveryGpsLat: z.number().optional(),
+        deliveryGpsLng: z.number().optional(),
+        deliveryNotes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -73,7 +78,11 @@ export const ordersRouter = router({
           subtotal,
           discount,
           total,
-          shippingAddress: {},
+          shippingAddress: input.deliveryAddress ? { line1: input.deliveryAddress } : {},
+          deliveryGpsLat: input.deliveryGpsLat,
+          deliveryGpsLng: input.deliveryGpsLng,
+          deliveryNotes: input.deliveryNotes,
+          courierService: input.courierService,
           couponId: coupon?.id ?? null,
           items: { create: orderItems },
         },

@@ -7,6 +7,8 @@ import { adminRouter } from './admin'
 import { authRouter } from './auth'
 import { wishlistRouter } from './wishlist'
 import { stokvelRouter } from './stokvel'
+import { vendorsRouter } from './vendors'
+import { loadsheddingRouter } from './loadshedding'
 
 export const appRouter = router({
   auth: authRouter,
@@ -17,6 +19,8 @@ export const appRouter = router({
   admin: adminRouter,
   wishlist: wishlistRouter,
   stokvel: stokvelRouter,
+  vendors: vendorsRouter,
+  loadshedding: loadsheddingRouter,
 })
 
 export type AppRouter = typeof appRouter
