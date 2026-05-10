@@ -16,7 +16,15 @@ const app = express()
 
 app.use(
   cors({
-    origin: process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000',
+    origin: (origin, cb) => {
+      // Allow any localhost origin in dev; in prod restrict to NEXT_PUBLIC_APP_URL
+      const allowed = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
+      if (!origin || origin === allowed || /^http:\/\/localhost:\d+$/.test(origin)) {
+        cb(null, true)
+      } else {
+        cb(new Error(`CORS: origin ${origin} not allowed`))
+      }
+    },
     credentials: true,
   })
 )
