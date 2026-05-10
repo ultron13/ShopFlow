@@ -57,17 +57,18 @@ export default async function VendorsPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((vendor) => (
-            <Link
+            <div
               key={vendor.id}
-              href={`/vendor/${vendor.id}`}
-              className="block rounded-xl border bg-white p-5 hover:border-indigo-300 hover:shadow-sm transition"
+              className="flex flex-col rounded-xl border bg-white p-5 hover:border-indigo-300 hover:shadow-sm transition"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-1 flex-wrap">
-                    <span className="truncate">{vendor.businessName}</span>
-                    {vendor.isVerified && <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />}
-                  </h3>
+                  <Link href={`/vendors/${vendor.id}`}>
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-1 flex-wrap hover:text-indigo-700">
+                      <span className="truncate">{vendor.businessName}</span>
+                      {vendor.isVerified && <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />}
+                    </h3>
+                  </Link>
                   {vendor.category && (
                     <p className="text-xs text-indigo-600 mt-0.5">{vendor.category}</p>
                   )}
@@ -75,7 +76,7 @@ export default async function VendorsPage({
               </div>
 
               {vendor.description && (
-                <p className="mt-2 text-xs text-gray-500 line-clamp-2">{vendor.description}</p>
+                <p className="mt-2 text-xs text-gray-500 line-clamp-2 flex-1">{vendor.description}</p>
               )}
 
               <div className="mt-3 space-y-1">
@@ -94,11 +95,30 @@ export default async function VendorsPage({
               </div>
 
               {vendor.permitNumber && (
-                <span className="mt-2 rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700 inline-block">
+                <span className="mt-2 rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700 inline-block self-start">
                   ✓ Permit {vendor.permitNumber}
                 </span>
               )}
-            </Link>
+
+              <div className="mt-3 flex gap-2 flex-wrap">
+                {vendor.whatsapp && (
+                  <a
+                    href={`https://wa.me/27${vendor.whatsapp.replace(/^0/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                  >
+                    💬 WhatsApp
+                  </a>
+                )}
+                <Link
+                  href={`/vendors/${vendor.id}`}
+                  className="inline-flex items-center justify-center rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                >
+                  View Profile →
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}
