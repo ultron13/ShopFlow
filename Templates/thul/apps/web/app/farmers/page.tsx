@@ -103,12 +103,14 @@ export default async function FarmersPage({
               {/* Name + badges */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-1 flex-wrap">
-                    <span className="truncate">{farmer.businessName}</span>
-                    {farmer.isVerified && (
-                      <CheckCircle className="h-4 w-4 text-green-500 shrink-0" title="Verified farmer" />
-                    )}
-                  </h3>
+                  <Link href={`/farmers/${farmer.id}`}>
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-1 flex-wrap hover:text-green-700">
+                      <span className="truncate">{farmer.businessName}</span>
+                      {farmer.isVerified && (
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" title="Verified farmer" />
+                      )}
+                    </h3>
+                  </Link>
                   {farmer.category && (
                     <p className="mt-0.5 text-xs font-medium text-green-700">
                       {CATEGORY_ICONS[farmer.category]} {farmer.category}
@@ -150,17 +152,25 @@ export default async function FarmersPage({
                 </span>
               )}
 
-              {/* WhatsApp CTA */}
-              {farmer.whatsapp && (
-                <a
-                  href={`https://wa.me/27${farmer.whatsapp.replace(/^0/, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+              {/* CTAs */}
+              <div className="mt-3 flex gap-2 flex-wrap">
+                {farmer.whatsapp && (
+                  <a
+                    href={`https://wa.me/27${farmer.whatsapp.replace(/^0/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                  >
+                    💬 WhatsApp to Order
+                  </a>
+                )}
+                <Link
+                  href={`/farmers/${farmer.id}`}
+                  className="inline-flex items-center justify-center rounded-lg border border-green-200 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50"
                 >
-                  💬 WhatsApp to Order
-                </a>
-              )}
+                  View Profile →
+                </Link>
+              </div>
             </div>
           ))}
         </div>
