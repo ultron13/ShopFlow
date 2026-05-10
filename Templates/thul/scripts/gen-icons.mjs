@@ -22,34 +22,45 @@ const PUBLIC = resolve(__dir, '../apps/web/public')
 const APP    = resolve(__dir, '../apps/web/app')
 
 function makeSvg(size) {
-  const r  = Math.round(size * 0.18)   // corner radius
+  const r  = Math.round(size * 0.20)   // background corner radius
   const cx = size / 2
-  const cy = size / 2
+  const sw = Math.max(2, size * 0.048) // stroke width
 
-  // Basket proportions scale with icon size
-  const bw   = size * 0.52   // basket width
-  const bh   = size * 0.36   // basket body height
+  // ── Shopping bag body ──────────────────────────────────────────────
+  // A clean rectangle with two punched-out handle slots at the top
+  const bw   = size * 0.54
+  const bh   = size * 0.46
   const bx   = cx - bw / 2
-  const by   = cy - bh / 2 + size * 0.06
-  const sw   = Math.max(2, size * 0.045) // stroke width
+  const by   = size * 0.34            // bag starts ~34% down
+  const br   = size * 0.045           // bag corner radius
 
-  // Handle arc: sits above the basket
-  const hry  = bh * 0.55   // handle y-radius
-  const hrx  = bw * 0.38   // handle x-radius
-  const hcy  = by - hry * 0.15
+  // Handles: two small rounded arches punched into the top of the bag
+  const hw   = bw * 0.22             // handle slot width
+  const hh   = size * 0.10           // handle slot height (arch)
+  const hgap = bw * 0.10             // gap from bag edge
+  const hyl  = by - hh * 0.55        // top of arch
 
-  // "SA" label pill
-  const pw   = size * 0.28
-  const ph   = size * 0.155
-  const px   = cx - pw / 2
-  const py   = by + bh - ph * 0.42
-  const pr   = ph * 0.38
+  // Handle top strip (the part above the bag opening) – two short lines
+  const hl1x1 = bx + hgap
+  const hl1x2 = bx + hgap + hw
+  const hl2x1 = bx + bw - hgap - hw
+  const hl2x2 = bx + bw - hgap
+
+  // ── "SA" pill badge ────────────────────────────────────────────────
+  const pw = size * 0.26
+  const ph = size * 0.14
+  const px = cx - pw / 2
+  const py = by + bh - ph * 0.55
+  const pr = ph * 0.42
+
+  // ── Horizontal stripe across mid-bag ──────────────────────────────
+  const stripeY = by + bh * 0.42
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%"   stop-color="#4338ca"/>
-      <stop offset="100%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
     </linearGradient>
     <linearGradient id="pill" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%"   stop-color="#fde68a"/>
@@ -57,30 +68,37 @@ function makeSvg(size) {
     </linearGradient>
   </defs>
 
-  <!-- Background -->
+  <!-- Background square with rounded corners -->
   <rect width="${size}" height="${size}" rx="${r}" ry="${r}" fill="url(#bg)"/>
 
-  <!-- Basket handle (arc) -->
-  <path d="M ${cx - hrx} ${hcy} A ${hrx} ${hry} 0 0 1 ${cx + hrx} ${hcy}"
-        fill="none" stroke="white" stroke-width="${sw}" stroke-linecap="round" opacity="0.95"/>
-
-  <!-- Basket body (rounded rect) -->
+  <!-- Bag body -->
   <rect x="${bx}" y="${by}" width="${bw}" height="${bh}"
-        rx="${sw * 1.4}" ry="${sw * 1.4}"
-        fill="white" opacity="0.95"/>
+        rx="${br}" ry="${br}" fill="white" opacity="0.95"/>
 
-  <!-- Basket vertical lines -->
-  <line x1="${cx - bw*0.19}" y1="${by}" x2="${cx - bw*0.19}" y2="${by + bh}"
-        stroke="#c7d2fe" stroke-width="${sw * 0.65}" opacity="0.7"/>
-  <line x1="${cx + bw*0.19}" y1="${by}" x2="${cx + bw*0.19}" y2="${by + bh}"
-        stroke="#c7d2fe" stroke-width="${sw * 0.65}" opacity="0.7"/>
+  <!-- Horizontal accent stripe -->
+  <rect x="${bx}" y="${stripeY}" width="${bw}" height="${sw * 0.9}"
+        fill="#c7d2fe" opacity="0.6"/>
 
-  <!-- SA pill badge -->
+  <!-- Left handle arch -->
+  <path d="M ${hl1x1} ${by}
+           Q ${hl1x1} ${hyl} ${hl1x1 + hw/2} ${hyl}
+           Q ${hl1x2} ${hyl} ${hl1x2} ${by}"
+        fill="none" stroke="white" stroke-width="${sw}" stroke-linecap="round"
+        stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- Right handle arch -->
+  <path d="M ${hl2x1} ${by}
+           Q ${hl2x1} ${hyl} ${hl2x1 + hw/2} ${hyl}
+           Q ${hl2x2} ${hyl} ${hl2x2} ${by}"
+        fill="none" stroke="white" stroke-width="${sw}" stroke-linecap="round"
+        stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- SA amber pill badge -->
   <rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="${pr}" ry="${pr}" fill="url(#pill)"/>
-  <text x="${cx}" y="${py + ph * 0.72}"
-        font-family="system-ui,Arial,sans-serif" font-weight="800"
-        font-size="${ph * 0.62}" fill="#78350f"
-        text-anchor="middle" letter-spacing="${ph * 0.05}">SA</text>
+  <text x="${cx}" y="${py + ph * 0.73}"
+        font-family="Arial Black,system-ui,sans-serif" font-weight="900"
+        font-size="${ph * 0.64}" fill="#92400e"
+        text-anchor="middle" letter-spacing="${ph * 0.06}">SA</text>
 </svg>`
 }
 
