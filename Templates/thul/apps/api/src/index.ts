@@ -8,6 +8,8 @@ import { createExpressMiddleware } from '@trpc/server/adapters/express'
 import { appRouter } from './routers/index'
 import { createContext } from './context'
 import { stripeWebhookHandler } from './webhooks/stripe'
+import { payfastWebhookHandler } from './webhooks/payfast'
+import { ozowWebhookHandler } from './webhooks/ozow'
 import { rateLimiter, authRateLimiter } from './middleware/rateLimit'
 
 const app = express()
@@ -25,6 +27,12 @@ app.post(
   express.raw({ type: 'application/json' }),
   stripeWebhookHandler
 )
+
+// PayFast IPN arrives as URL-encoded form POST
+app.post('/webhooks/payfast', express.urlencoded({ extended: false }), payfastWebhookHandler)
+
+// Ozow notification arrives as JSON
+app.post('/webhooks/ozow', express.json(), ozowWebhookHandler)
 
 app.use(express.json({ limit: '10mb' }))
 app.use(rateLimiter)

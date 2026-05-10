@@ -6,13 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(amount: number | string | { toString(): string }) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(
     Number(amount)
   )
 }
 
 export function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(date))
+  return new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium' }).format(new Date(date))
 }
 
 export function slugify(str: string) {

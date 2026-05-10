@@ -2,6 +2,10 @@ import { z } from 'zod'
 import { router, protectedProcedure, publicProcedure, adminProcedure } from '../trpc'
 import { TRPCError } from '@trpc/server'
 import { createCheckoutSession, refundPaymentIntent } from '../services/stripe'
+import { buildPayfastPayment } from '../services/payfast'
+import { buildOzowPayment } from '../services/ozow'
+
+const paymentMethodSchema = z.enum(['STRIPE', 'PAYFAST', 'OZOW', 'SNAPSCAN', 'COD']).default('STRIPE')
 
 export const ordersRouter = router({
   create: publicProcedure
@@ -12,12 +16,14 @@ export const ordersRouter = router({
         ),
         couponCode: z.string().optional(),
         guestEmail: z.string().email().optional(),
+        paymentMethod: paymentMethodSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.token ? (await import('../middleware/auth.js').then((m) => m.verifyToken(ctx.token!, ctx.prisma)))?.id : undefined
+      const userId = ctx.token
+        ? (await import('../middleware/auth').then((m) => m.verifyToken(ctx.token!, ctx.prisma)))?.id
+        : undefined
 
-      // Resolve products
       const productIds = input.items.map((i) => i.productId)
       const products = await ctx.prisma.product.findMany({
         where: { id: { in: productIds }, published: true },
@@ -26,7 +32,6 @@ export const ordersRouter = router({
       if (products.length !== productIds.length)
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'One or more products not found' })
 
-      // Validate coupon
       let coupon = null
       if (input.couponCode) {
         coupon = await ctx.prisma.coupon.findUnique({ where: { code: input.couponCode, active: true } })
@@ -37,7 +42,6 @@ export const ordersRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Coupon usage limit reached' })
       }
 
-      // Build order
       const orderItems = input.items.map((item) => {
         const product = products.find((p) => p.id === item.productId)!
         const unitPrice = Number(product.price)
@@ -59,48 +63,92 @@ export const ordersRouter = router({
           : Number(coupon.discount)
         discount = Math.min(discount, subtotal)
       }
-
       const total = subtotal - discount
 
-      // Placeholder order (confirmed by webhook)
       const order = await ctx.prisma.order.create({
         data: {
           userId: userId ?? null,
           guestEmail: input.guestEmail ?? null,
-          stripeSessionId: 'pending',
+          paymentMethod: input.paymentMethod,
           subtotal,
           discount,
           total,
           shippingAddress: {},
           couponId: coupon?.id ?? null,
-          items: {
-            create: orderItems,
-          },
+          items: { create: orderItems },
         },
       })
 
       const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
-      const session = await createCheckoutSession({
-        lineItems: orderItems.map((item) => ({
-          price_data: {
-            currency: 'usd',
-            unit_amount: Math.round(item.unitPrice * 100),
-            product_data: { name: item.productName },
-          },
-          quantity: item.quantity,
-        })),
-        orderId: order.id,
-        customerEmail: input.guestEmail,
-        successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${appUrl}/cart`,
-      })
+      const apiUrl = process.env['API_URL'] ?? 'http://localhost:4000'
 
+      // ── Stripe ────────────────────────────────────────────────────────────
+      if (input.paymentMethod === 'STRIPE') {
+        const session = await createCheckoutSession({
+          lineItems: orderItems.map((item) => ({
+            price_data: {
+              currency: 'zar',
+              unit_amount: Math.round(item.unitPrice * 100),
+              product_data: { name: item.productName },
+            },
+            quantity: item.quantity,
+          })),
+          orderId: order.id,
+          customerEmail: input.guestEmail,
+          successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${appUrl}/cart`,
+        })
+        await ctx.prisma.order.update({
+          where: { id: order.id },
+          data: { stripeSessionId: session.id },
+        })
+        return { paymentMethod: 'STRIPE' as const, checkoutUrl: session.url! }
+      }
+
+      // ── PayFast ───────────────────────────────────────────────────────────
+      if (input.paymentMethod === 'PAYFAST') {
+        const { url, params } = buildPayfastPayment({
+          orderId: order.id,
+          amount: total,
+          itemName: `ShopFlow Order ${order.id.slice(-8).toUpperCase()}`,
+          email: input.guestEmail,
+          returnUrl: `${appUrl}/checkout/success`,
+          cancelUrl: `${appUrl}/cart`,
+          notifyUrl: `${apiUrl}/webhooks/payfast`,
+        })
+        await ctx.prisma.order.update({
+          where: { id: order.id },
+          data: { payfastToken: order.id },
+        })
+        return { paymentMethod: 'PAYFAST' as const, payfastUrl: url, payfastParams: params }
+      }
+
+      // ── Ozow ──────────────────────────────────────────────────────────────
+      if (input.paymentMethod === 'OZOW') {
+        const ozowUrl = buildOzowPayment({
+          orderId: order.id,
+          amount: total,
+          cancelUrl: `${appUrl}/cart`,
+          errorUrl: `${appUrl}/cart?error=payment_failed`,
+          successUrl: `${appUrl}/checkout/success`,
+          notifyUrl: `${apiUrl}/webhooks/ozow`,
+        })
+        return { paymentMethod: 'OZOW' as const, redirectUrl: ozowUrl }
+      }
+
+      // ── SnapScan ──────────────────────────────────────────────────────────
+      if (input.paymentMethod === 'SNAPSCAN') {
+        const snapScanUrl = process.env['SNAPSCAN_MERCHANT_URL'] ?? 'https://pos.snapscan.io/qr/demo'
+        return { paymentMethod: 'SNAPSCAN' as const, snapScanUrl, orderId: order.id }
+      }
+
+      // ── Cash on Delivery ──────────────────────────────────────────────────
       await ctx.prisma.order.update({
         where: { id: order.id },
-        data: { stripeSessionId: session.id },
+        data: { status: 'CONFIRMED' },
       })
-
-      return { checkoutUrl: session.url }
+      if (userId) await ctx.prisma.cartItem.deleteMany({ where: { userId } })
+      return { paymentMethod: 'COD' as const, orderId: order.id }
     }),
 
   list: protectedProcedure

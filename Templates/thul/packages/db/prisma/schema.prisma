@@ -23,6 +23,27 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  STRIPE
+  PAYFAST
+  OZOW
+  SNAPSCAN
+  COD
+  STOKVEL
+}
+
+enum StokvelStatus {
+  COLLECTING
+  COMPLETED
+  CANCELLED
+}
+
+enum ContributionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
@@ -167,12 +188,16 @@ model CartItem {
 }
 
 model Order {
-  id              String      @id @default(cuid())
+  id              String        @id @default(cuid())
   userId          String?
   guestEmail      String?
-  status          OrderStatus @default(PENDING)
-  stripeSessionId String      @unique
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod @default(STRIPE)
+
+  stripeSessionId       String? @unique
   stripePaymentIntentId String?
+  payfastToken          String?
+  ozowTransactionId     String?
 
   items           OrderItem[]
   subtotal        Decimal     @db.Decimal(10, 2)
@@ -187,6 +212,9 @@ model Order {
   couponId String?
   coupon   Coupon? @relation(fields: [couponId], references: [id])
 
+  stokvelGroupId String?       @unique
+  stokvelGroup   StokvelGroup? @relation(fields: [stokvelGroupId], references: [id])
+
   user User? @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
@@ -194,6 +222,7 @@ model Order {
 
   @@index([userId])
   @@index([status])
+  @@index([paymentMethod])
   @@map("orders")
 }
 
@@ -286,4 +315,56 @@ model Coupon {
   createdAt DateTime @default(now())
 
   @@map("coupons")
+}
+
+model StokvelGroup {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  targetAmount Decimal       @db.Decimal(10, 2)
+  cartItems    Json
+  status       StokvelStatus @default(COLLECTING)
+  createdById  String
+
+  members       StokvelMember[]
+  contributions StokvelContribution[]
+  order         Order?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stokvel_groups")
+}
+
+model StokvelMember {
+  id          String  @id @default(cuid())
+  groupId     String
+  email       String
+  name        String?
+  shareAmount Decimal @db.Decimal(10, 2)
+
+  group         StokvelGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  contributions StokvelContribution[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([groupId, email])
+  @@map("stokvel_members")
+}
+
+model StokvelContribution {
+  id            String             @id @default(cuid())
+  groupId       String
+  memberId      String
+  amount        Decimal            @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  paymentRef    String?
+  status        ContributionStatus @default(PENDING)
+
+  group  StokvelGroup  @relation(fields: [groupId], references: [id])
+  member StokvelMember @relation(fields: [memberId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("stokvel_contributions")
 }

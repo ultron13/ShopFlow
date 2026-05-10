@@ -6,6 +6,7 @@ import { reviewsRouter } from './reviews'
 import { adminRouter } from './admin'
 import { authRouter } from './auth'
 import { wishlistRouter } from './wishlist'
+import { stokvelRouter } from './stokvel'
 
 export const appRouter = router({
   auth: authRouter,
@@ -15,6 +16,7 @@ export const appRouter = router({
   reviews: reviewsRouter,
   admin: adminRouter,
   wishlist: wishlistRouter,
+  stokvel: stokvelRouter,
 })
 
 export type AppRouter = typeof appRouter
