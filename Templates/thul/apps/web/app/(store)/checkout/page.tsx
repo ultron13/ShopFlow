@@ -4,7 +4,7 @@ import { useCartStore } from '@/lib/cart-store'
 import { trpc } from '@/lib/trpc'
 import { formatPrice } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -87,10 +87,11 @@ export default function CheckoutPage() {
     router.push('/checkout/success')
   }
 
-  if (items.length === 0) {
-    router.push('/cart')
-    return null
-  }
+  useEffect(() => {
+    if (items.length === 0) router.push('/cart')
+  }, [items.length, router])
+
+  if (items.length === 0) return null
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">

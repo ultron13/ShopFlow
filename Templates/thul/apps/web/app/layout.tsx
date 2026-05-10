@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Navbar } from '@/components/layout/navbar'
@@ -11,8 +11,11 @@ export const metadata: Metadata = {
   title: { default: 'ShopFlow SA', template: '%s | ShopFlow SA' },
   description: 'Buy fresh fruit & veg direct from SA street vendors near you.',
   manifest: '/manifest.json',
-  themeColor: '#4f46e5',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ShopFlow SA' },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#4f46e5',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
