@@ -35,6 +35,9 @@ export function Navbar() {
             <Link href="/products?categorySlug=home-kitchen" className="text-sm font-medium text-gray-600 hover:text-gray-900">
               Home & Kitchen
             </Link>
+            <Link href="/stokvel" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+              🤝 Stokvel
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -101,7 +104,7 @@ export function Navbar() {
         {menuOpen && (
           <div className="border-t bg-white px-4 py-3 md:hidden">
             <div className="flex flex-col gap-3">
-              {['All Products:/products', 'Electronics:/products?categorySlug=electronics', 'Clothing:/products?categorySlug=clothing', 'Home & Kitchen:/products?categorySlug=home-kitchen'].map((item) => {
+              {['All Products:/products', 'Electronics:/products?categorySlug=electronics', 'Clothing:/products?categorySlug=clothing', 'Home & Kitchen:/products?categorySlug=home-kitchen', '🤝 Stokvel:/stokvel'].map((item) => {
                 const [label, href] = item.split(':') as [string, string]
                 return (
                   <Link key={href} href={href} className="text-sm font-medium text-gray-700" onClick={() => setMenuOpen(false)}>
