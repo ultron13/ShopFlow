@@ -14,6 +14,7 @@ export interface VendorPin {
   isVerified: boolean
   lat: number
   lng: number
+  profileUrl: string
 }
 
 type Layer = 'all' | 'vendors' | 'farmers'
@@ -166,19 +167,36 @@ function renderMarkers(
     })
 
     const waLink = pin.whatsapp
-      ? `<a href="https://wa.me/27${pin.whatsapp.replace(/^0/, '')}" target="_blank"
-           style="display:inline-block;margin-top:8px;padding:4px 10px;background:#16a34a;color:#fff;
-                  border-radius:6px;font-size:11px;text-decoration:none;">💬 WhatsApp to Order</a>`
+      ? `<a href="https://wa.me/27${pin.whatsapp.replace(/^0/, '')}?text=${encodeURIComponent(`Hi ${pin.name}, I would like to place an order.`)}"
+            target="_blank"
+            style="display:inline-block;padding:4px 10px;background:#16a34a;color:#fff;
+                   border-radius:6px;font-size:11px;text-decoration:none;flex:1;text-align:center;">
+           💬 WhatsApp
+         </a>`
       : ''
 
+    const profileLink = `<a href="${pin.profileUrl}"
+         style="display:inline-block;padding:4px 10px;background:${isFarmer ? '#dcfce7' : '#e0e7ff'};
+                color:${isFarmer ? '#15803d' : '#4338ca'};border-radius:6px;font-size:11px;
+                text-decoration:none;flex:1;text-align:center;">
+         View Profile →
+       </a>`
+
     const popup = `
-      <div style="font-family:system-ui,sans-serif;min-width:160px;max-width:220px">
+      <div style="font-family:system-ui,sans-serif;min-width:180px;max-width:230px">
         <p style="font-weight:600;font-size:13px;margin:0 0 2px">${pin.name}</p>
-        <p style="font-size:11px;color:${isFarmer ? '#15803d' : '#4f46e5'};margin:0 0 4px">${pin.category || (isFarmer ? 'Farmer' : 'Vendor')}</p>
-        <p style="font-size:11px;color:#6b7280;margin:0">${[pin.city, pin.province].filter(Boolean).join(', ')}</p>
+        <p style="font-size:11px;color:${isFarmer ? '#15803d' : '#4f46e5'};margin:0 0 4px">
+          ${pin.category || (isFarmer ? 'Farmer' : 'Vendor')}
+        </p>
+        <p style="font-size:11px;color:#6b7280;margin:0">
+          ${[pin.city, pin.province].filter(Boolean).join(', ')}
+        </p>
         ${pin.phone ? `<p style="font-size:11px;color:#6b7280;margin:2px 0 0">📞 ${pin.phone}</p>` : ''}
         ${pin.isVerified ? `<p style="font-size:11px;color:#16a34a;margin:4px 0 0">✓ Verified</p>` : ''}
-        ${waLink}
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          ${waLink}
+          ${profileLink}
+        </div>
       </div>`
 
     const marker = L.marker([pin.lat, pin.lng], { icon })
