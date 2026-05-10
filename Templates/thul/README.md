@@ -1,6 +1,12 @@
-# ShopFlow SA — Street Vendor Marketplace
+# Thul — SA Farmers & Street Vendor Marketplace
 
-A production-ready marketplace built for South African street vendors and farmers — from fruit stalls in Thohoyandou to urban gardens in Soweto.
+A production-ready marketplace connecting South African farmers and street vendors directly with buyers across all nine provinces — no agents, no middlemen.
+
+---
+
+## Vision
+
+From Nomvula's banana farm in Port Shepstone to the Pretorius family vegetable plot in Magaliesburg, **Thul** lets any buyer across South Africa browse, filter, and order directly from verified farmers and informal traders. Every farmer gets their own discoverable profile; every order goes straight to the source.
 
 ---
 
@@ -8,138 +14,211 @@ A production-ready marketplace built for South African street vendors and farmer
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15 (App Router, Server Components) |
-| Backend | Node.js + Express + tRPC v11 |
+| Frontend | Next.js 14 (App Router, Server Components) |
+| Backend | Node.js + Express + tRPC |
 | Database | PostgreSQL 16 (via Prisma ORM) |
 | Cache | Redis 7 |
-| Auth | NextAuth.js v5 (OAuth + credentials, JWT strategy) |
-| Payments | PayFast · Ozow EFT · SnapScan QR · Cash on Delivery · Stripe |
+| Auth | NextAuth.js v5 (OAuth + credentials) |
+| Payments | Stripe (Checkout + Webhooks) |
 | File Storage | AWS S3 + CloudFront CDN |
-| Search | PostgreSQL full-text search (pg_trgm) |
+| Search | PostgreSQL full-text search + pg_trgm |
 | Email | Resend |
-| Maps | Leaflet + react-leaflet (no API key required) |
 | Containerization | Docker + Docker Compose |
 
 ---
 
-## Features
+## What Has Been Built
 
-### SA Street Vendor Storefront
-- 32 SA produce products across 5 categories (Fresh Vegetables, Fresh Fruit, Herbs & Spices, Grains & Staples, Cooked & Ready)
-- Full-text product search with typo tolerance
-- Product image gallery with stock availability
-- Persistent cart (localStorage guest → DB on sign-in)
-- Prices in ZAR (R) throughout
+### Farmers Marketplace — `/farmers` (live)
 
-### Find Vendors
-- Browse 22 SA street vendors across all 9 provinces
+The dedicated farmers page is a first-class feature:
+
+- Fetches all vendors filtered to farmer categories server-side (ISR, 60 s revalidation)
+- Filter by **province** (all 9 SA provinces) and **farmer category**
+- Full-text **search** by farm name, city, or produce description
+- Farmer cards show: verification badge, category icon, GPS location, contact, VAT status, permit number
+- **WhatsApp to Order** button — pre-fills the country code so a buyer anywhere in SA can message the farmer in one tap
+- **Register My Farm** CTA routes new farmers to `/vendor/dashboard` for onboarding
+
+### Farmer Categories Supported
+
+| Category | Icon | Description |
+|---|---|---|
+| Vegetable Farmer | 🥬 | Tomatoes, onions, butternut, cabbage, morogo |
+| Fruit Farmer | 🍊 | Citrus, mangoes, bananas, pineapples |
+| Organic Farmer | 🌱 | Chemical-free spinach, kale, amadumbe, sweet potato |
+| Herb & Spice Farmer | 🌿 | Peri-peri chillies, ginger, garlic, dried herbs |
+| Urban Farmer | 🏙️ | Township raised-bed gardens, community co-ops |
+
+### Seeded Farmers (10 across SA)
+
+| Farm | Province | City | Category |
+|---|---|---|---|
+| Pretorius Family Farm | North West | Magaliesburg | Vegetable Farmer |
+| Sithole Organic Vegetables | KwaZulu-Natal | Pietermaritzburg | Organic Farmer |
+| Van Wyk Citrus Estate | Western Cape | Citrusdal | Fruit Farmer |
+| Nomvula's Banana & Pineapple Farm | KwaZulu-Natal | Port Shepstone | Fruit Farmer |
+| Joubert Mango Orchards | Limpopo | Tzaneen | Fruit Farmer |
+| Nkosi Community Garden Co-op | Gauteng | Soweto | Urban Farmer |
+| Swanepoel Boer Pumpkin Farm | Northern Cape | Upington | Vegetable Farmer |
+| Mahlangu Herb & Chilli Farm | Mpumalanga | Nelspruit | Herb & Spice Farmer |
+| Bezuidenhout Free Range Farm | Western Cape | Montagu | Vegetable Farmer |
+| Zulu Amadumbe & Sweet Potato Co. | KwaZulu-Natal | Greytown | Organic Farmer |
+
+### Street Vendors — `/vendors` (live)
+
+- 12 seeded street vendors across SA
 - Filter by province and category
-- Province / search filters via URL params (SSR-rendered)
-- Verified badge, permit number, WhatsApp ordering button
+- Vendor detail pages at `/vendor/[id]`
+- Interactive map at `/map` (Leaflet — no API key required)
 
-### Find Farmers
-- Dedicated `/farmers` page for farm-direct produce
-- 10 farmers seeded across 7 provinces (Vegetable, Fruit, Organic, Herb & Spice, Urban)
-- Category quick-filter pills, WhatsApp-to-order CTA
-- Province filter, farm permit and VAT badge display
+### Storefront & Ordering
 
-### Interactive Vendor Map (`/map`)
-- Leaflet map centred on South Africa
-- Pins for every active vendor and farmer with GPS coordinates
-- Popup cards with business name, category, city and WhatsApp link
-- "Locate me" button uses browser geolocation
-- Layer toggle: All / Vendors only / Farmers only
-- Accessible on mobile without an API key
+- 32 SA street-market products seeded across 5 categories
+- Product catalogue at `/products` with category, price, and rating filters
+- Full-text product search with typo tolerance (pg_trgm)
+- **Ordering from any farmer** — buyers add produce from any farmer's product listing to a shared cart, pay via Stripe Checkout, and receive email + SMS confirmation
+- Persistent cart (DB when logged in, localStorage as guest)
+- Guest checkout with optional account creation on completion
+- Order status tracking: `PENDING → CONFIRMED → SHIPPED → DELIVERED`
 
-### Seasonal Produce Calendar (`/seasonal`)
-- 30 SA produce items with 12-month harvest bars
-- Correct SA seasons (not northern hemisphere)
-- Includes indigenous produce: amadumbe, morogo, marula, naartjie
+### Other Live Pages
 
-### Checkout & Payments
-- **PayFast** — SA's leading payment gateway (cards, EFT, Mobicred)
-- **SnapScan** — QR code generated at checkout; modal with live QR
-- **Ozow** — instant bank EFT (no card needed)
-- **Cash on Delivery** — with collection point support
-- **Stripe** — international cards (fallback)
-- Coupon / discount code support
-- Webhook-driven order confirmation
+| Route | What it does |
+|---|---|
+| `/seasonal` | SA seasonal produce calendar with accurate local produce data |
+| `/map` | Interactive Leaflet map of all vendor/farmer GPS pins |
+| `/stokvel` | Community group bulk-buying (create/join stokvels) |
+| `/account` | Customer dashboard — order history, wishlist, address book |
+| `/admin` | Admin panel — orders, inventory, vendor verification, analytics |
+| `/vendor/dashboard` | Farmer / vendor self-onboarding form |
 
-### Stokvel Bulk Buying (`/stokvel`)
-- Community savings group creation and management
-- Pool orders across group members
-- Contribution tracking per member
+### Authentication
 
-### Accessibility & Connectivity
-- **Data-light mode** — toggle in navbar reduces bandwidth usage
-- **Load shedding banner** — stage display with next outage time
-- **PWA** — installable, app icons (192×192, 512×512), manifest
-- **7 SA languages** — English, isiZulu, Afrikaans, Tshivenda, isiXhosa, Sepedi, Sesotho
-
-### Compliance
-- **POPIA consent** banner with Learn More link
-- **VAT vendor flag** on vendor/farmer cards
-- **Permit number** display for licensed vendors
-
-### Customer Accounts
-- Email/password and Google OAuth sign-in
-- Order history, address book, wishlist
+- Email/password and Google OAuth via NextAuth.js v5
+- Role-based access: `CUSTOMER`, `ADMIN`
 - Product reviews (one per verified purchase)
 
-### Admin Dashboard (`/admin`)
-- Product CRUD with S3 image uploads
-- Inventory management, low-stock alerts
-- Order management — view, update status, issue refunds
-- Revenue and sales analytics
+### Infrastructure
+
+- Redis caching for product listings and sessions
+- Rate limiting on auth and checkout endpoints
+- Optimistic UI updates with React Query
+- Image optimisation via Next.js `<Image>` + CloudFront
 
 ---
 
 ## Project Structure
 
 ```
-shopflow/
+thul/
 ├── apps/
-│   ├── web/                          # Next.js 15 frontend
-│   │   ├── app/
-│   │   │   ├── (store)/              # Public storefront
-│   │   │   │   ├── products/         # Product catalog + filters
-│   │   │   │   ├── checkout/         # Multi-payment checkout
-│   │   │   │   └── cart/
-│   │   │   ├── (auth)/               # Sign-in, sign-up
-│   │   │   ├── account/              # Customer dashboard
-│   │   │   ├── admin/                # Admin panel (protected)
-│   │   │   ├── farmers/              # Farm-direct produce page
-│   │   │   ├── vendors/              # Street vendor discovery
-│   │   │   ├── map/                  # Interactive vendor map (Leaflet)
-│   │   │   ├── seasonal/             # SA seasonal produce calendar
-│   │   │   ├── stokvel/              # Community savings groups
-│   │   │   └── api/auth/             # NextAuth route handler
-│   │   ├── components/
-│   │   │   ├── layout/               # Navbar, Footer
-│   │   │   └── store/                # ProductCard, CartSidebar, etc.
-│   │   ├── lib/
-│   │   │   ├── utils.ts              # formatPrice (ZAR), slugify, cn
-│   │   │   ├── cart-store.ts         # Zustand persistent cart
-│   │   │   ├── i18n.tsx              # 7-language provider
-│   │   │   └── auth.ts               # NextAuth config
-│   │   ├── __tests__/                # Vitest unit tests (67 tests)
-│   │   ├── public/                   # PWA icons, manifest
-│   │   └── e2e/ → ../../e2e/         # Playwright tests (31 tests)
-│   └── api/                          # Express + tRPC server (port 4000)
+│   ├── web/                         # Next.js frontend
+│   │   └── app/
+│   │       ├── farmers/             # Dedicated farmers page (SSR + filters)
+│   │       │   ├── page.tsx
+│   │       │   └── farmer-filters.tsx
+│   │       ├── vendors/             # Street vendors listing
+│   │       │   ├── page.tsx
+│   │       │   └── vendor-filters.tsx
+│   │       ├── vendor/[id]/         # Individual vendor / farmer profile
+│   │       ├── map/                 # Interactive vendor + farmer map
+│   │       ├── seasonal/            # SA seasonal produce calendar
+│   │       ├── stokvel/             # Community savings group buying
+│   │       ├── (store)/             # Public storefront
+│   │       │   ├── products/
+│   │       │   ├── cart/
+│   │       │   └── checkout/
+│   │       ├── (auth)/              # Sign-in, sign-up
+│   │       ├── account/             # Customer dashboard
+│   │       ├── admin/               # Admin panel (protected)
+│   │       └── vendor/dashboard/    # Farmer / vendor onboarding
+│   └── api/                         # Express + tRPC server
 │       └── src/
-│           ├── routers/              # products, vendors, orders, stokvel, …
-│           ├── services/             # payfast, ozow, stripe, snapscan, sms
-│           └── webhooks/             # PayFast IPN, Ozow, Stripe
+│           ├── routers/
+│           │   ├── vendors.ts       # list, byId, register, me, verify
+│           │   ├── products.ts
+│           │   ├── orders.ts
+│           │   ├── cart.ts
+│           │   ├── stokvel.ts
+│           │   └── loadshedding.ts
+│           ├── services/
+│           │   ├── payfast.ts
+│           │   ├── ozow.ts
+│           │   ├── sms.ts
+│           │   └── ...
+│           └── webhooks/
 ├── packages/
-│   └── db/                           # Shared Prisma client + migrations
+│   ├── db/                          # Shared Prisma client + types
+│   ├── trpc/                        # Shared tRPC router types
+│   └── ui/                          # Shared component library
 ├── scripts/
-│   ├── seed-vendors.mjs              # 12 SA street vendors
-│   ├── seed-farmers.mjs              # 10 SA farmers across 7 provinces
-│   └── seed-products.mjs             # 32 SA produce products
-├── e2e/                              # Playwright E2E tests (31)
-├── playwright.config.ts
-├── turbo.json
+│   ├── seed-farmers.mjs             # Seeds 10 farmers across SA provinces
+│   ├── seed-vendors.mjs             # Seeds 12 street vendors
+│   └── seed-products.mjs            # Seeds 32 SA market products
+├── e2e/
+│   ├── farmers.spec.ts
+│   ├── vendors.spec.ts
+│   ├── products.spec.ts
+│   └── cart.spec.ts
+├── docker-compose.yml
 └── .env.example
+```
+
+---
+
+## Database Schema (key models)
+
+```prisma
+model Vendor {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String
+  description  String?
+  category     String?  // "Vegetable Farmer", "Fruit Farmer", etc.
+  province     String?
+  city         String?
+  address      String?
+  phone        String?
+  whatsapp     String?
+  gpsLat       Float?
+  gpsLng       Float?
+  permitNumber String?
+  vatNumber    String?
+  isVerified   Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  user         User     @relation(fields: [userId], references: [id])
+  products     Product[]
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(CUSTOMER)
+  orders    Order[]
+  reviews   Review[]
+  wishlist  WishlistItem[]
+  addresses Address[]
+  vendor    Vendor?
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  status          OrderStatus @default(PENDING)
+  stripeSessionId String      @unique
+  items           OrderItem[]
+  total           Decimal     @db.Money
+  shippingAddress Json
+  couponId        String?
+  createdAt       DateTime    @default(now())
+}
+
+enum Role        { CUSTOMER ADMIN }
+enum OrderStatus { PENDING CONFIRMED SHIPPED DELIVERED CANCELLED REFUNDED }
 ```
 
 ---
@@ -148,14 +227,17 @@ shopflow/
 
 ### Prerequisites
 
-- Node.js ≥ 20
-- Docker + Docker Compose (for PostgreSQL and Redis)
+- Node.js >= 20
+- Docker + Docker Compose
+- Stripe account
+- Resend account
+- AWS account (S3 bucket + CloudFront distribution)
 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/ultron13/ShopFlow.git
-cd ShopFlow
+git clone https://github.com/your-org/thul.git
+cd thul
 npm install
 ```
 
@@ -165,139 +247,113 @@ npm install
 cp .env.example .env
 ```
 
-Then create `apps/web/.env.local` (Next.js reads from its own directory, not the monorepo root):
+Key variables:
 
 ```env
-AUTH_SECRET="generate-with: openssl rand -base64 32"
-DATABASE_URL="postgresql://shopflow:secret@localhost:5433/shopflow"
-NEXT_PUBLIC_API_URL="http://localhost:4000"
-NEXT_PUBLIC_APP_URL="http://localhost:3001"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_placeholder"
+DATABASE_URL="postgresql://thul:secret@localhost:5432/thul"
+REDIS_URL="redis://localhost:6379"
+
+NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+NEXTAUTH_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+AWS_REGION="af-south-1"
+S3_BUCKET_NAME="thul-assets"
+CLOUDFRONT_URL="https://cdn.yourdomain.com"
+
+RESEND_API_KEY="re_..."
+EMAIL_FROM="orders@yourdomain.com"
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+API_URL="http://localhost:4000"
 ```
 
 ### 3. Start infrastructure
 
 ```bash
-docker compose up -d        # PostgreSQL (5433) + Redis (6379)
+docker compose up -d
 ```
 
-### 4. Set up the database and seed data
+### 4. Run migrations
 
 ```bash
-cd packages/db
-npx prisma migrate deploy
-
-cd ../../
-node scripts/seed-vendors.mjs    # 12 SA street vendors
-node scripts/seed-farmers.mjs    # 10 SA farmers
-node scripts/seed-products.mjs   # 32 SA produce products
+cd apps/api && npx prisma migrate dev
 ```
 
-### 5. Start dev servers
+### 5. Seed data
 
 ```bash
-npm run dev        # starts web (3001) + api (4000) via Turborepo
+# From repo root
+node scripts/seed-farmers.mjs   # 10 farmers across SA
+node scripts/seed-vendors.mjs   # 12 street vendors
+node scripts/seed-products.mjs  # 32 SA market products
 ```
 
-Open [http://localhost:3001](http://localhost:3001)
+### 6. Start dev servers
+
+```bash
+npm run dev
+```
+
+| URL | Page |
+|---|---|
+| http://localhost:3000 | Home |
+| http://localhost:3000/farmers | Farmers marketplace |
+| http://localhost:3000/vendors | Street vendors |
+| http://localhost:3000/map | Interactive map |
+| http://localhost:3000/seasonal | Seasonal produce |
+| http://localhost:3000/admin | Admin panel (`admin@thul.dev` / `admin1234`) |
+
+---
+
+## Stripe Webhook (local testing)
+
+```bash
+stripe listen --forward-to http://localhost:4000/webhooks/stripe
+```
+
+Copy the printed `whsec_...` value into `STRIPE_WEBHOOK_SECRET`.
 
 ---
 
 ## Running Tests
 
 ```bash
-# Unit tests (Vitest) — 67 tests, 100% line coverage on lib/
-cd apps/web
-npm run test
+npm run test          # unit tests (Vitest)
+npm run test:e2e      # Playwright e2e — includes farmers.spec.ts
 npm run test:coverage
-
-# E2E tests (Playwright) — 31 tests across 5 pages
-# Requires dev server running on port 3002 (or set BASE_URL)
-cd ../..
-npx playwright test
-npx playwright test --reporter=html    # open HTML report
 ```
-
-### Coverage summary (unit tests)
-
-| File | Lines | Functions | Branches |
-|------|-------|-----------|----------|
-| `lib/utils.ts` | 100% | 100% | 100% |
-| `lib/cart-store.ts` | 100% | 100% | 93.75% |
-| `lib/i18n.tsx` | 100% | 94.73% | 100% |
-| **Overall** | **100%** | **97.5%** | **95.45%** |
-
----
-
-## Roadmap — South African Market
-
-### Payments & Currency
-- [x] ZAR (South African Rand) as primary currency with `formatPrice`
-- [x] PayFast integration (SA's leading payment gateway)
-- [x] SnapScan QR code payments (modal with generated QR at checkout)
-- [x] Ozow instant EFT (no card needed)
-- [x] Cash on Delivery with collection point support
-- [x] Stokvel community savings group bulk-buying
-
-### Connectivity & Accessibility
-- [x] Data-light mode (toggle in navbar, reduced bandwidth)
-- [x] Load shedding schedule integration (stage banner with next outage)
-- [x] PWA install prompt with SA-branded app icons
-- [ ] Offline-first mode — service worker caching for browse + cart
-- [ ] USSD storefront (`*120*SHOPFLOW#`) for feature phones
-
-### Communication
-- [x] WhatsApp order buttons on vendor and farmer cards
-- [x] Multi-language: 7 of 11 SA languages (EN, ZU, AF, VE, XH, NSO, ST)
-- [ ] Remaining 4 languages (siSwati, Xitsonga, isiNdebele, Setswana)
-- [ ] WhatsApp Business API — order updates and vendor chat
-- [ ] SMS order notifications (BulkSMS SA)
-
-### Vendor & Market Management
-- [x] Vendor marketplace (`/vendors`) — 12 SA street vendors, province + category filter
-- [x] Farmer marketplace (`/farmers`) — 10 SA farmers, category pills, WhatsApp CTA
-- [x] Interactive vendor + farmer map (`/map`) — Leaflet, locate-me, layer toggle
-- [x] Seasonal produce calendar (`/seasonal`) — 30 SA produce items, harvest bars
-- [x] Hawker's permit and VAT vendor display on vendor cards
-- [ ] Daily price sync from SA municipal fresh produce markets
-- [ ] Vendor dashboard optimised for entry-level Android
-
-### Logistics & Delivery
-- [ ] Township + informal settlement delivery (GPS pin drop, no street address needed)
-- [ ] SA courier integrations: Pudo locker, The Courier Guy, Aramex SA
-- [ ] Click-and-collect at community pickup points
-- [ ] Real-time order tracking with WhatsApp status updates
-
-### Compliance & Trust
-- [x] POPIA consent banner
-- [x] SARS VAT vendor flag (15%)
-- [x] Customer reviews (one per verified purchase)
-
-### Mobile
-- [x] PWA (installable, works offline for static assets)
-- [ ] React Native + Expo app (Android-first)
 
 ---
 
 ## API Overview
 
-All endpoints go through tRPC (port 4000). Key routers:
+All endpoints go through tRPC:
 
-| Router | Public Procedures | Protected Procedures |
-|--------|-------------------|----------------------|
-| `products` | `list`, `bySlug` | `create`, `update`, `delete` (admin) |
-| `vendors` | `list`, `byId` | `register`, `me` |
-| `orders` | `create` (guest + auth) | `list`, `byId`, `updateStatus` |
-| `stokvel` | — | `list`, `create`, `join`, `contribute` |
-| `reviews` | `list` | `create`, `delete` |
-| `loadshedding` | `status` | — |
-| `admin` | — | `dashboard`, `lowStock`, `generateCoupon` |
+| Router | Procedures |
+|---|---|
+| `vendors` | `list`, `byId`, `register`, `me`, `verify` |
+| `products` | `list`, `bySlug`, `search`, `create`, `update`, `delete` |
+| `cart` | `get`, `addItem`, `updateItem`, `removeItem`, `clear` |
+| `orders` | `create`, `list`, `byId`, `updateStatus`, `refund` |
+| `reviews` | `list`, `create`, `delete` |
+| `stokvel` | community bulk-buy group management |
+| `loadshedding` | load shedding schedule integration |
+| `admin` | `dashboard`, `lowStockAlerts`, `generateCoupon` |
 
-Webhook endpoints (REST):
+The `vendors.list` procedure accepts `province` and `category` filters. The farmers page uses these to scope results to farmer categories only (`Vegetable Farmer`, `Fruit Farmer`, `Organic Farmer`, `Herb & Spice Farmer`, `Urban Farmer`).
+
+REST endpoint (Stripe webhook):
+
 ```
 POST /webhooks/stripe
-POST /webhooks/payfast
-POST /webhooks/ozow
 ```
 
 ---
@@ -314,12 +370,63 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 | Service | Platform |
 |---|---|
-| Next.js frontend | Vercel (deploy `apps/web`) |
+| Next.js frontend | Vercel |
 | Express API | Railway |
-| PostgreSQL | Railway managed Postgres |
-| Redis | Railway managed Redis |
+| PostgreSQL | Railway (managed Postgres) |
+| Redis | Railway (managed Redis) |
 
-Set `NEXT_PUBLIC_API_URL` in Vercel to point to your Railway API URL.
+1. Push to GitHub.
+2. Import `apps/web` into Vercel; set all `NEXT_PUBLIC_*` env vars.
+3. Import `apps/api` into Railway; add a Postgres and Redis plugin.
+4. Set `API_URL` in Vercel to your Railway API URL.
+5. Add the production Stripe webhook endpoint in the Stripe dashboard.
+
+---
+
+## Roadmap
+
+### Farmer Experience (next priority)
+- [ ] Individual farmer profile pages (`/farmers/[id]`) — full produce listing, reviews, and order CTA
+- [ ] In-app ordering directly from farmer profiles — cart integration without WhatsApp redirect
+- [ ] Farmer dashboard — manage produce listings, view and fulfil orders, update availability and stock
+- [ ] Seasonal availability toggle — auto-hide out-of-season produce per farmer
+- [ ] Farmer-to-buyer direct messaging (WhatsApp Business API)
+- [ ] Farm GPS pin with directions link on each farmer card
+
+### Ordering & Payments
+- [ ] ZAR (South African Rand) as primary display currency
+- [ ] PayFast integration (SA's leading payment gateway)
+- [ ] SnapScan QR code payments
+- [ ] Ozow instant EFT (no card needed)
+- [ ] Cash on Delivery with community collection points
+- [ ] Stokvel group bulk-buy ordering pools
+
+### Connectivity & Accessibility
+- [ ] Offline-first mode — browse and add to cart without data; sync on reconnect
+- [ ] Data-light mode — compressed images and minimal JS for low-end Android devices
+- [ ] USSD storefront (`*120*THUL#`) for feature phones without internet
+- [ ] Load shedding schedule integration — notify farmers and buyers of blackout windows
+- [ ] SMS order confirmations via BulkSMS SA
+
+### Communication
+- [ ] WhatsApp Business API — order updates and catalogue sharing
+- [ ] Multi-language support for all 11 official SA languages
+- [ ] Voice prompts in local languages for low-literacy users
+
+### Logistics
+- [ ] GPS pin-drop addressing for townships and informal settlements
+- [ ] SA courier integrations: Pudo, The Courier Guy, Aramex SA, Fastway SA
+- [ ] Click-and-collect at community pickup points (schools, spaza shops)
+- [ ] Real-time tracking with WhatsApp status updates
+
+### Compliance
+- [ ] POPIA compliance — consent management, data subject rights, breach notifications
+- [ ] SARS VAT registration flag (15% VAT) per farmer
+- [ ] Farmer verification document upload (permit, ID)
+
+### Mobile
+- [ ] React Native + Expo — Android-first for entry-level smartphones
+- [ ] PWA install prompt for low-end devices
 
 ---
 
