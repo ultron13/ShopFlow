@@ -34,10 +34,6 @@ Thumbs.db
 # Turbo
 .turbo/
 
-# Prisma
-apps/api/prisma/migrations/
-packages/db/prisma/migrations/
-
 # Test / coverage
 coverage/
 playwright-report/
