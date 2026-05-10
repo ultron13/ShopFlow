@@ -11,10 +11,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt' },
   pages: { signIn: '/sign-in' },
   providers: [
-    Google({
-      clientId: process.env['AUTH_GOOGLE_ID']!,
-      clientSecret: process.env['AUTH_GOOGLE_SECRET']!,
-    }),
+    ...(process.env['AUTH_GOOGLE_ID']
+      ? [Google({
+          clientId: process.env['AUTH_GOOGLE_ID'],
+          clientSecret: process.env['AUTH_GOOGLE_SECRET']!,
+        })]
+      : []),
     Credentials({
       credentials: {
         email: { label: 'Email', type: 'email' },

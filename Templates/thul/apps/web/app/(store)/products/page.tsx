@@ -20,10 +20,12 @@ interface PageProps {
 }
 
 const categories = [
-  { name: 'All', slug: undefined },
-  { name: 'Electronics', slug: 'electronics' },
-  { name: 'Clothing', slug: 'clothing' },
-  { name: 'Home & Kitchen', slug: 'home-kitchen' },
+  { name: 'All',              slug: undefined },
+  { name: 'Fresh Vegetables', slug: 'vegetables' },
+  { name: 'Fresh Fruit',      slug: 'fruit' },
+  { name: 'Herbs & Spices',   slug: 'herbs-spices' },
+  { name: 'Grains & Staples', slug: 'grains' },
+  { name: 'Cooked & Ready',   slug: 'cooked-food' },
 ]
 
 export default async function ProductsPage({ searchParams: searchParamsPromise }: PageProps) {

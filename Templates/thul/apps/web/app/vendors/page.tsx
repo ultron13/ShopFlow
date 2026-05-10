@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { MapPin, Phone, CheckCircle } from 'lucide-react'
 import { api } from '@/lib/trpc-server'
@@ -34,11 +35,13 @@ export default async function VendorsPage({
       </div>
 
       {/* Client-side filters — province/category update URL params, search filters client-side */}
-      <VendorFilters
-        province={params.province ?? 'All'}
-        category={params.category ?? 'All'}
-        search={params.search ?? ''}
-      />
+      <Suspense fallback={null}>
+        <VendorFilters
+          province={params.province ?? 'All'}
+          category={params.category ?? 'All'}
+          search={params.search ?? ''}
+        />
+      </Suspense>
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-gray-50 py-20 text-center text-gray-400">

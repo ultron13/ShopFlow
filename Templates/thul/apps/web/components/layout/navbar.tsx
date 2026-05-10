@@ -3,15 +3,17 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { ShoppingCart, User, Search, Package, Menu, X, Zap } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/lib/cart-store'
 import { CartSidebar } from '@/components/store/cart-sidebar'
 import { LanguageSelector } from '@/components/language-selector'
 import { useI18n } from '@/lib/i18n'
 
 function useDataLight() {
-  if (typeof window === 'undefined') return { on: false, toggle: () => {} }
-  const [on, setOn] = useState(() => localStorage.getItem('data-light') === '1')
+  const [on, setOn] = useState(false)
+  useEffect(() => {
+    setOn(localStorage.getItem('data-light') === '1')
+  }, [])
   function toggle() {
     const next = !on
     setOn(next)
@@ -41,6 +43,7 @@ export function Navbar() {
           <div className="hidden gap-5 md:flex items-center">
             <Link href="/products" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.products}</Link>
             <Link href="/vendors"  className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.vendors}</Link>
+            <Link href="/farmers"  className="text-sm font-medium text-green-700 hover:text-green-900">🌱 Farmers</Link>
             <Link href="/seasonal" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t.nav.seasonal}</Link>
             <Link href="/stokvel"  className="text-sm font-medium text-indigo-600 hover:text-indigo-800">🤝 {t.nav.stokvel}</Link>
           </div>
@@ -119,7 +122,7 @@ export function Navbar() {
         {menuOpen && (
           <div className="border-t bg-white px-4 py-3 md:hidden">
             <div className="flex flex-col gap-3">
-              {[`${t.nav.products}:/products`, `${t.nav.vendors}:/vendors`, `${t.nav.seasonal}:/seasonal`, `🤝 ${t.nav.stokvel}:/stokvel`].map((item) => {
+              {[`${t.nav.products}:/products`, `${t.nav.vendors}:/vendors`, `🌱 Farmers:/farmers`, `${t.nav.seasonal}:/seasonal`, `🤝 ${t.nav.stokvel}:/stokvel`].map((item) => {
                 const [label, href] = item.split(':') as [string, string]
                 return (
                   <Link key={href} href={href} className="text-sm font-medium text-gray-700" onClick={() => setMenuOpen(false)}>
