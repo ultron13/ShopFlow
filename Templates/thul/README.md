@@ -1,6 +1,6 @@
-# ShopFlow — Full-Stack Ecommerce Platform
+# ShopFlow SA — Street Vendor Marketplace
 
-A production-ready ecommerce application built with Next.js, Node.js, and PostgreSQL.
+A production-ready marketplace built for South African street vendors and farmers — from fruit stalls in Thohoyandou to urban gardens in Soweto.
 
 ---
 
@@ -8,58 +8,89 @@ A production-ready ecommerce application built with Next.js, Node.js, and Postgr
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14 (App Router, Server Components) |
-| Backend | Node.js + Express + tRPC |
+| Frontend | Next.js 15 (App Router, Server Components) |
+| Backend | Node.js + Express + tRPC v11 |
 | Database | PostgreSQL 16 (via Prisma ORM) |
 | Cache | Redis 7 |
-| Auth | NextAuth.js v5 (OAuth + credentials) |
-| Payments | Stripe (Checkout + Webhooks) |
+| Auth | NextAuth.js v5 (OAuth + credentials, JWT strategy) |
+| Payments | PayFast · Ozow EFT · SnapScan QR · Cash on Delivery · Stripe |
 | File Storage | AWS S3 + CloudFront CDN |
-| Search | PostgreSQL full-text search + pg_trgm |
+| Search | PostgreSQL full-text search (pg_trgm) |
 | Email | Resend |
+| Maps | Leaflet + react-leaflet (no API key required) |
 | Containerization | Docker + Docker Compose |
 
 ---
 
 ## Features
 
-### Storefront
-- Product catalog with category, price, and rating filters
-- Full-text product search with typo tolerance (pg_trgm)
-- Product image gallery with zoom
-- Stock availability display
-- Related products carousel
-- Persistent cart (synced to DB when logged in, localStorage as guest)
-- Guest checkout with optional account creation on completion
+### SA Street Vendor Storefront
+- 32 SA produce products across 5 categories (Fresh Vegetables, Fresh Fruit, Herbs & Spices, Grains & Staples, Cooked & Ready)
+- Full-text product search with typo tolerance
+- Product image gallery with stock availability
+- Persistent cart (localStorage guest → DB on sign-in)
+- Prices in ZAR (R) throughout
+
+### Find Vendors
+- Browse 22 SA street vendors across all 9 provinces
+- Filter by province and category
+- Province / search filters via URL params (SSR-rendered)
+- Verified badge, permit number, WhatsApp ordering button
+
+### Find Farmers
+- Dedicated `/farmers` page for farm-direct produce
+- 10 farmers seeded across 7 provinces (Vegetable, Fruit, Organic, Herb & Spice, Urban)
+- Category quick-filter pills, WhatsApp-to-order CTA
+- Province filter, farm permit and VAT badge display
+
+### Interactive Vendor Map (`/map`)
+- Leaflet map centred on South Africa
+- Pins for every active vendor and farmer with GPS coordinates
+- Popup cards with business name, category, city and WhatsApp link
+- "Locate me" button uses browser geolocation
+- Layer toggle: All / Vendors only / Farmers only
+- Accessible on mobile without an API key
+
+### Seasonal Produce Calendar (`/seasonal`)
+- 30 SA produce items with 12-month harvest bars
+- Correct SA seasons (not northern hemisphere)
+- Includes indigenous produce: amadumbe, morogo, marula, naartjie
+
+### Checkout & Payments
+- **PayFast** — SA's leading payment gateway (cards, EFT, Mobicred)
+- **SnapScan** — QR code generated at checkout; modal with live QR
+- **Ozow** — instant bank EFT (no card needed)
+- **Cash on Delivery** — with collection point support
+- **Stripe** — international cards (fallback)
+- Coupon / discount code support
+- Webhook-driven order confirmation
+
+### Stokvel Bulk Buying (`/stokvel`)
+- Community savings group creation and management
+- Pool orders across group members
+- Contribution tracking per member
+
+### Accessibility & Connectivity
+- **Data-light mode** — toggle in navbar reduces bandwidth usage
+- **Load shedding banner** — stage display with next outage time
+- **PWA** — installable, app icons (192×192, 512×512), manifest
+- **7 SA languages** — English, isiZulu, Afrikaans, Tshivenda, isiXhosa, Sepedi, Sesotho
+
+### Compliance
+- **POPIA consent** banner with Learn More link
+- **VAT vendor flag** on vendor/farmer cards
+- **Permit number** display for licensed vendors
 
 ### Customer Accounts
 - Email/password and Google OAuth sign-in
-- Order history with status tracking
-- Address book management
-- Wishlist / saved items
-- Product reviews and star ratings (one per verified purchase)
-
-### Checkout & Payments
-- Stripe Checkout integration (cards, Apple Pay, Google Pay)
-- Webhook-driven order confirmation (idempotent processing)
-- Automatic tax calculation via Stripe Tax
-- Coupon and discount code support
-- Order confirmation emails via Resend
+- Order history, address book, wishlist
+- Product reviews (one per verified purchase)
 
 ### Admin Dashboard (`/admin`)
-- Product CRUD with image uploads to S3
-- Inventory management and low-stock alerts
-- Order management (view, update status, issue refunds)
-- Customer list and detail view
-- Revenue and sales analytics charts
-- Discount code generator
-
-### Infrastructure
-- Redis caching for product listings and sessions
-- Rate limiting on auth and checkout endpoints
-- Optimistic UI updates with React Query
-- Image optimization via Next.js `<Image>` + CloudFront
-- Row-level security policies on the DB
+- Product CRUD with S3 image uploads
+- Inventory management, low-stock alerts
+- Order management — view, update status, issue refunds
+- Revenue and sales analytics
 
 ---
 
@@ -68,96 +99,47 @@ A production-ready ecommerce application built with Next.js, Node.js, and Postgr
 ```
 shopflow/
 ├── apps/
-│   ├── web/                    # Next.js frontend
+│   ├── web/                          # Next.js 15 frontend
 │   │   ├── app/
-│   │   │   ├── (store)/        # Public storefront routes
-│   │   │   ├── (auth)/         # Sign-in, sign-up
-│   │   │   ├── account/        # Customer dashboard
-│   │   │   ├── admin/          # Admin panel (protected)
-│   │   │   └── api/            # Next.js route handlers
+│   │   │   ├── (store)/              # Public storefront
+│   │   │   │   ├── products/         # Product catalog + filters
+│   │   │   │   ├── checkout/         # Multi-payment checkout
+│   │   │   │   └── cart/
+│   │   │   ├── (auth)/               # Sign-in, sign-up
+│   │   │   ├── account/              # Customer dashboard
+│   │   │   ├── admin/                # Admin panel (protected)
+│   │   │   ├── farmers/              # Farm-direct produce page
+│   │   │   ├── vendors/              # Street vendor discovery
+│   │   │   ├── map/                  # Interactive vendor map (Leaflet)
+│   │   │   ├── seasonal/             # SA seasonal produce calendar
+│   │   │   ├── stokvel/              # Community savings groups
+│   │   │   └── api/auth/             # NextAuth route handler
 │   │   ├── components/
+│   │   │   ├── layout/               # Navbar, Footer
+│   │   │   └── store/                # ProductCard, CartSidebar, etc.
 │   │   ├── lib/
-│   │   └── public/
-│   └── api/                    # Express + tRPC server
-│       ├── src/
-│       │   ├── routers/        # tRPC routers (products, orders, users)
-│       │   ├── middleware/     # Auth, rate-limit, logging
-│       │   ├── services/       # Business logic
-│       │   ├── jobs/           # Background jobs (order processing, emails)
-│       │   └── webhooks/       # Stripe webhook handlers
-│       └── prisma/
-│           ├── schema.prisma
-│           └── migrations/
+│   │   │   ├── utils.ts              # formatPrice (ZAR), slugify, cn
+│   │   │   ├── cart-store.ts         # Zustand persistent cart
+│   │   │   ├── i18n.tsx              # 7-language provider
+│   │   │   └── auth.ts               # NextAuth config
+│   │   ├── __tests__/                # Vitest unit tests (67 tests)
+│   │   ├── public/                   # PWA icons, manifest
+│   │   └── e2e/ → ../../e2e/         # Playwright tests (31 tests)
+│   └── api/                          # Express + tRPC server (port 4000)
+│       └── src/
+│           ├── routers/              # products, vendors, orders, stokvel, …
+│           ├── services/             # payfast, ozow, stripe, snapscan, sms
+│           └── webhooks/             # PayFast IPN, Ozow, Stripe
 ├── packages/
-│   ├── db/                     # Shared Prisma client + types
-│   ├── trpc/                   # Shared tRPC router types
-│   └── ui/                     # Shared component library
-├── docker-compose.yml
-├── docker-compose.prod.yml
+│   └── db/                           # Shared Prisma client + migrations
+├── scripts/
+│   ├── seed-vendors.mjs              # 12 SA street vendors
+│   ├── seed-farmers.mjs              # 10 SA farmers across 7 provinces
+│   └── seed-products.mjs             # 32 SA produce products
+├── e2e/                              # Playwright E2E tests (31)
+├── playwright.config.ts
+├── turbo.json
 └── .env.example
-```
-
----
-
-## Database Schema (key models)
-
-```prisma
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(CUSTOMER)
-  orders    Order[]
-  reviews   Review[]
-  wishlist  WishlistItem[]
-  addresses Address[]
-  createdAt DateTime @default(now())
-}
-
-model Product {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  description String
-  price       Decimal  @db.Money
-  stock       Int      @default(0)
-  images      String[]
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  variants    Variant[]
-  reviews     Review[]
-  searchVector Unsupported("tsvector")?
-
-  @@index([searchVector], type: Gin)
-}
-
-model Order {
-  id              String      @id @default(cuid())
-  userId          String?
-  status          OrderStatus @default(PENDING)
-  stripeSessionId String      @unique
-  items           OrderItem[]
-  total           Decimal     @db.Money
-  shippingAddress Json
-  couponId        String?
-  createdAt       DateTime    @default(now())
-}
-
-model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  rating    Int      // 1–5
-  body      String?
-  verified  Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
-
-  @@unique([userId, productId])
-}
-
-enum Role        { CUSTOMER ADMIN }
-enum OrderStatus { PENDING CONFIRMED SHIPPED DELIVERED CANCELLED REFUNDED }
 ```
 
 ---
@@ -166,18 +148,15 @@ enum OrderStatus { PENDING CONFIRMED SHIPPED DELIVERED CANCELLED REFUNDED }
 
 ### Prerequisites
 
-- Node.js >= 20
-- Docker + Docker Compose
-- AWS account (S3 bucket + CloudFront distribution)
-- Stripe account
-- Resend account
+- Node.js ≥ 20
+- Docker + Docker Compose (for PostgreSQL and Redis)
 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-org/shopflow.git
-cd shopflow
-npm install        # installs all workspace packages
+git clone https://github.com/ultron13/ShopFlow.git
+cd ShopFlow
+npm install
 ```
 
 ### 2. Configure environment
@@ -186,81 +165,139 @@ npm install        # installs all workspace packages
 cp .env.example .env
 ```
 
-Fill in `.env`:
+Then create `apps/web/.env.local` (Next.js reads from its own directory, not the monorepo root):
 
 ```env
-# Database
-DATABASE_URL="postgresql://shopflow:secret@localhost:5432/shopflow"
-REDIS_URL="redis://localhost:6379"
-
-# Auth
-NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
-NEXTAUTH_URL="http://localhost:3000"
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-
-# Stripe
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-
-# AWS S3
-AWS_ACCESS_KEY_ID=""
-AWS_SECRET_ACCESS_KEY=""
-AWS_REGION="us-east-1"
-S3_BUCKET_NAME="shopflow-assets"
-CLOUDFRONT_URL="https://cdn.yourdomain.com"
-
-# Email
-RESEND_API_KEY="re_..."
-EMAIL_FROM="orders@yourdomain.com"
-
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-API_URL="http://localhost:4000"
+AUTH_SECRET="generate-with: openssl rand -base64 32"
+DATABASE_URL="postgresql://shopflow:secret@localhost:5433/shopflow"
+NEXT_PUBLIC_API_URL="http://localhost:4000"
+NEXT_PUBLIC_APP_URL="http://localhost:3001"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_placeholder"
 ```
 
 ### 3. Start infrastructure
 
 ```bash
-docker compose up -d      # starts PostgreSQL and Redis
+docker compose up -d        # PostgreSQL (5433) + Redis (6379)
 ```
 
-### 4. Set up the database
+### 4. Set up the database and seed data
 
 ```bash
-cd apps/api
-npx prisma migrate dev    # runs migrations and seeds demo data
+cd packages/db
+npx prisma migrate deploy
+
+cd ../../
+node scripts/seed-vendors.mjs    # 12 SA street vendors
+node scripts/seed-farmers.mjs    # 10 SA farmers
+node scripts/seed-products.mjs   # 32 SA produce products
 ```
 
 ### 5. Start dev servers
 
 ```bash
-# From repo root — starts both Next.js (3000) and Express (4000) in parallel
-npm run dev
+npm run dev        # starts web (3001) + api (4000) via Turborepo
 ```
 
-Open [http://localhost:3000](http://localhost:3000).  
-Admin panel: [http://localhost:3000/admin](http://localhost:3000/admin) (seeded admin: `admin@shopflow.dev` / `admin1234`).
-
----
-
-## Stripe Webhook (local testing)
-
-```bash
-stripe listen --forward-to http://localhost:4000/webhooks/stripe
-```
-
-Copy the printed `whsec_...` value into `STRIPE_WEBHOOK_SECRET`.
+Open [http://localhost:3001](http://localhost:3001)
 
 ---
 
 ## Running Tests
 
 ```bash
-npm run test          # unit tests (Vitest)
-npm run test:e2e      # end-to-end tests (Playwright)
+# Unit tests (Vitest) — 67 tests, 100% line coverage on lib/
+cd apps/web
+npm run test
 npm run test:coverage
+
+# E2E tests (Playwright) — 31 tests across 5 pages
+# Requires dev server running on port 3002 (or set BASE_URL)
+cd ../..
+npx playwright test
+npx playwright test --reporter=html    # open HTML report
+```
+
+### Coverage summary (unit tests)
+
+| File | Lines | Functions | Branches |
+|------|-------|-----------|----------|
+| `lib/utils.ts` | 100% | 100% | 100% |
+| `lib/cart-store.ts` | 100% | 100% | 93.75% |
+| `lib/i18n.tsx` | 100% | 94.73% | 100% |
+| **Overall** | **100%** | **97.5%** | **95.45%** |
+
+---
+
+## Roadmap — South African Market
+
+### Payments & Currency
+- [x] ZAR (South African Rand) as primary currency with `formatPrice`
+- [x] PayFast integration (SA's leading payment gateway)
+- [x] SnapScan QR code payments (modal with generated QR at checkout)
+- [x] Ozow instant EFT (no card needed)
+- [x] Cash on Delivery with collection point support
+- [x] Stokvel community savings group bulk-buying
+
+### Connectivity & Accessibility
+- [x] Data-light mode (toggle in navbar, reduced bandwidth)
+- [x] Load shedding schedule integration (stage banner with next outage)
+- [x] PWA install prompt with SA-branded app icons
+- [ ] Offline-first mode — service worker caching for browse + cart
+- [ ] USSD storefront (`*120*SHOPFLOW#`) for feature phones
+
+### Communication
+- [x] WhatsApp order buttons on vendor and farmer cards
+- [x] Multi-language: 7 of 11 SA languages (EN, ZU, AF, VE, XH, NSO, ST)
+- [ ] Remaining 4 languages (siSwati, Xitsonga, isiNdebele, Setswana)
+- [ ] WhatsApp Business API — order updates and vendor chat
+- [ ] SMS order notifications (BulkSMS SA)
+
+### Vendor & Market Management
+- [x] Vendor marketplace (`/vendors`) — 12 SA street vendors, province + category filter
+- [x] Farmer marketplace (`/farmers`) — 10 SA farmers, category pills, WhatsApp CTA
+- [x] Interactive vendor + farmer map (`/map`) — Leaflet, locate-me, layer toggle
+- [x] Seasonal produce calendar (`/seasonal`) — 30 SA produce items, harvest bars
+- [x] Hawker's permit and VAT vendor display on vendor cards
+- [ ] Daily price sync from SA municipal fresh produce markets
+- [ ] Vendor dashboard optimised for entry-level Android
+
+### Logistics & Delivery
+- [ ] Township + informal settlement delivery (GPS pin drop, no street address needed)
+- [ ] SA courier integrations: Pudo locker, The Courier Guy, Aramex SA
+- [ ] Click-and-collect at community pickup points
+- [ ] Real-time order tracking with WhatsApp status updates
+
+### Compliance & Trust
+- [x] POPIA consent banner
+- [x] SARS VAT vendor flag (15%)
+- [x] Customer reviews (one per verified purchase)
+
+### Mobile
+- [x] PWA (installable, works offline for static assets)
+- [ ] React Native + Expo app (Android-first)
+
+---
+
+## API Overview
+
+All endpoints go through tRPC (port 4000). Key routers:
+
+| Router | Public Procedures | Protected Procedures |
+|--------|-------------------|----------------------|
+| `products` | `list`, `bySlug` | `create`, `update`, `delete` (admin) |
+| `vendors` | `list`, `byId` | `register`, `me` |
+| `orders` | `create` (guest + auth) | `list`, `byId`, `updateStatus` |
+| `stokvel` | — | `list`, `create`, `join`, `contribute` |
+| `reviews` | `list` | `create`, `delete` |
+| `loadshedding` | `status` | — |
+| `admin` | — | `dashboard`, `lowStock`, `generateCoupon` |
+
+Webhook endpoints (REST):
+```
+POST /webhooks/stripe
+POST /webhooks/payfast
+POST /webhooks/ozow
 ```
 
 ---
@@ -277,86 +314,12 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 | Service | Platform |
 |---|---|
-| Next.js frontend | Vercel |
+| Next.js frontend | Vercel (deploy `apps/web`) |
 | Express API | Railway |
-| PostgreSQL | Railway (managed Postgres) |
-| Redis | Railway (managed Redis) |
+| PostgreSQL | Railway managed Postgres |
+| Redis | Railway managed Redis |
 
-1. Push to GitHub.
-2. Import the `apps/web` directory into Vercel; set all `NEXT_PUBLIC_*` env vars.
-3. Import the `apps/api` directory into Railway; add a Postgres and Redis plugin.
-4. Set `API_URL` in Vercel to point to your Railway API service URL.
-5. Add the production Stripe webhook endpoint in the Stripe dashboard.
-
----
-
-## API Overview
-
-All endpoints go through tRPC. Key routers:
-
-| Router | Procedures |
-|---|---|
-| `products` | `list`, `bySlug`, `search`, `create`, `update`, `delete` |
-| `cart` | `get`, `addItem`, `updateItem`, `removeItem`, `clear` |
-| `orders` | `create`, `list`, `byId`, `updateStatus`, `refund` |
-| `reviews` | `list`, `create`, `delete` |
-| `auth` | handled by NextAuth route handler |
-| `admin` | `dashboard`, `lowStockAlerts`, `generateCoupon` |
-
-REST endpoint (for Stripe):
-
-```
-POST /webhooks/stripe
-```
-
----
-
-## Roadmap — South African Street Vendor Market
-
-Built with informal traders in mind — from the fruit stalls of Thohoyandou in Limpopo to the bustling markets of Soweto, Khayelitsha, and Durban's Victoria Street Market.
-
-### Payments & Currency
-- [ ] ZAR (South African Rand) as primary currency with multi-currency display
-- [ ] PayFast integration (South Africa's leading payment gateway)
-- [ ] SnapScan QR code payments (widely adopted at informal markets)
-- [ ] Ozow instant EFT (no card needed — bank account only)
-- [ ] Cash on Delivery with collection point support
-- [ ] Stokvel (community savings group) bulk-buying pools
-
-### Connectivity & Accessibility
-- [ ] Offline-first mode — browse and cart items without data; sync when connected
-- [ ] Data-light mode — compressed images, minimal JS bundle for low-end Android devices
-- [ ] USSD storefront (`*120*SHOPFLOW#`) for feature phones with no internet access
-- [ ] Load shedding schedule integration — notify vendors and customers of blackout windows
-- [ ] SMS order notifications and confirmations (Twilio / BulkSMS SA)
-
-### Communication
-- [ ] WhatsApp Business API — order updates, vendor chat, and catalogue sharing
-- [ ] Multi-language support for all 11 official SA languages (isiZulu, isiXhosa, Tshivenda, Sepedi/Northern Sotho, Sesotho, Setswana, siSwati, Xitsonga, isiNdebele, Afrikaans, English)
-- [ ] Voice assistant prompts in local languages for low-literacy users
-
-### Vendor & Market Management
-- [ ] Multi-vendor marketplace — individual stall owners each manage their own inventory and orders
-- [ ] Geolocation-based vendor discovery — find nearby fruit and veg stalls on an interactive map
-- [ ] Hawker's licence and vendor permit verification and display
-- [ ] Seasonal produce calendar with local pricing benchmarks (e.g. mangoes in season in Limpopo, butternut in the Cape)
-- [ ] Daily/weekly price updates synced from local municipal market rates (e.g. Johannesburg Fresh Produce Market)
-- [ ] Vendor dashboard optimised for Android (dominant device platform in SA townships)
-
-### Logistics & Delivery
-- [ ] Township and informal settlement delivery — flexible address input for areas without formal street addresses (GPS pin drop)
-- [ ] Integration with SA-local couriers: Pudo locker network, The Courier Guy, Aramex SA, Fastway SA
-- [ ] Click-and-collect at designated community pickup points (schools, churches, spaza shops)
-- [ ] Real-time order tracking with WhatsApp status updates
-
-### Compliance & Trust
-- [ ] POPIA (Protection of Personal Information Act) compliance — consent management, data subject rights, and breach notifications
-- [ ] SARS VAT registration flag for vendors who are VAT vendors (15% VAT)
-- [ ] Customer rating and review system for vendor accountability
-
-### Mobile
-- [ ] React Native + Expo mobile app — Android-first, optimised for entry-level smartphones
-- [ ] PWA (Progressive Web App) install prompt for customers on low-end devices
+Set `NEXT_PUBLIC_API_URL` in Vercel to point to your Railway API URL.
 
 ---
 

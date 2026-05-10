@@ -51,6 +51,12 @@ export default async function HomePage() {
               >
                 Find Vendors Near Me
               </Link>
+              <Link
+                href="/map"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
+              >
+                🗺️ View on Map
+              </Link>
             </div>
           </div>
         </div>
