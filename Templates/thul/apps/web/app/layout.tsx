@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: { default: 'ShopFlow SA', template: '%s | ShopFlow SA' },
   description: 'Buy fresh fruit & veg direct from SA street vendors near you.',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32',   type: 'image/png' },
+      { url: '/icon-192.png',   sizes: '192x192',  type: 'image/png' },
+    ],
+    apple: [{ url: '/icon-180.png', sizes: '180x180', type: 'image/png' }],
+  },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ShopFlow SA' },
 }
 
@@ -25,7 +32,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#4f46e5" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
       </head>
       <body>
         <Providers>
