@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, ShieldCheck, Truck, RefreshCw } from 'lucide-react'
+import { ArrowRight, MapPin, Users, Leaf } from 'lucide-react'
 import { api } from '@/lib/trpc-server'
 import { ProductCard } from '@/components/store/product-card'
 import { formatPrice } from '@/lib/utils'
@@ -8,15 +8,15 @@ import { formatPrice } from '@/lib/utils'
 export const revalidate = 120
 
 const categories = [
-  { name: 'Electronics', slug: 'electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600', color: 'from-blue-500 to-indigo-600' },
-  { name: 'Clothing', slug: 'clothing', image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600', color: 'from-pink-400 to-rose-600' },
-  { name: 'Home & Kitchen', slug: 'home-kitchen', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600', color: 'from-amber-400 to-orange-500' },
+  { name: 'Fresh Vegetables', slug: 'vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600', color: 'from-green-600 to-emerald-700' },
+  { name: 'Fresh Fruit', slug: 'fruit', image: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600', color: 'from-orange-400 to-amber-600' },
+  { name: 'Herbs & Spices', slug: 'herbs-spices', image: 'https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=600', color: 'from-lime-500 to-green-700' },
 ]
 
 const perks = [
-  { icon: Truck, label: 'Free Shipping', desc: 'On orders over $50' },
-  { icon: RefreshCw, label: 'Free Returns', desc: '30-day hassle-free returns' },
-  { icon: ShieldCheck, label: 'Secure Checkout', desc: 'Stripe-powered payments' },
+  { icon: MapPin, label: 'Local Vendors', desc: 'Direct from street markets near you' },
+  { icon: Leaf, label: 'Farm Fresh', desc: 'Seasonal produce, picked this week' },
+  { icon: Users, label: 'Stokvel Buying', desc: 'Pool orders with your community' },
 ]
 
 export default async function HomePage() {
@@ -28,28 +28,33 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-800 text-white">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
           <div className="max-w-2xl">
+            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-indigo-100">
+              <MapPin className="h-3.5 w-3.5" /> Thohoyandou · Limpopo · All of SA
+            </p>
             <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-              Shop smarter.<br />Live better.
+              Fresh from the<br />market stall,<br />straight to you.
             </h1>
             <p className="mt-6 text-lg text-indigo-200">
-              Curated products across electronics, clothing, and home essentials — all in one place.
+              Buy directly from SA street vendors — tomatoes, spinach, mangoes and more,
+              at real market prices. Pay with PayFast, SnapScan, Ozow or cash on delivery.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/products"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-indigo-700 shadow hover:bg-indigo-50"
               >
-                Shop Now <ArrowRight className="h-4 w-4" />
+                Shop the Market <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/products?featured=true"
+                href="/vendors"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
               >
-                View Featured
+                Find Vendors Near Me
               </Link>
             </div>
           </div>
         </div>
+        {/* Decorative circles */}
         <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/5" />
         <div className="absolute -bottom-16 right-32 h-60 w-60 rounded-full bg-white/5" />
       </section>
@@ -102,9 +107,9 @@ export default async function HomePage() {
       <section className="bg-gray-50 py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-            <Link href="/products?featured=true" className="text-sm font-medium text-indigo-600 hover:underline">
-              View all →
+            <h2 className="text-2xl font-bold text-gray-900">In Season Now</h2>
+            <Link href="/seasonal" className="text-sm font-medium text-indigo-600 hover:underline">
+              Full seasonal calendar →
             </Link>
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -115,15 +120,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Stokvel CTA */}
+      <section className="bg-indigo-700 py-14 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-bold">Buying as a group?</h2>
+            <p className="mt-2 text-indigo-200 max-w-lg">
+              Start a Stokvel — pool contributions from family and neighbours, then place one big
+              order together for better prices and shared delivery.
+            </p>
+          </div>
+          <Link
+            href="/stokvel"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-indigo-700 hover:bg-indigo-50"
+          >
+            Start a Stokvel <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
       <section className="bg-white py-16 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Ready to explore?</h2>
-        <p className="mt-3 text-gray-500">Browse our full catalog of premium products.</p>
+        <h2 className="text-3xl font-bold text-gray-900">Support your local vendor today.</h2>
+        <p className="mt-3 text-gray-500">Fresh produce, fair prices, fast delivery across South Africa.</p>
         <Link
           href="/products"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700"
         >
-          Browse All Products <ArrowRight className="h-4 w-4" />
+          Browse the Market <ArrowRight className="h-4 w-4" />
         </Link>
       </section>
     </div>
