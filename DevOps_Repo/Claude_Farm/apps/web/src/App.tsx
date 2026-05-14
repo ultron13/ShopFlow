@@ -6,6 +6,10 @@ import { Register } from './pages/auth/Register.js';
 import { Listings } from './pages/buyer/Listings.js';
 import { Orders } from './pages/buyer/Orders.js';
 import { FarmerDashboard } from './pages/farmer/Dashboard.js';
+import { FarmerLayout } from './pages/farmer/FarmerLayout.js';
+import { FarmerListings } from './pages/farmer/Listings.js';
+import { FarmerOrders } from './pages/farmer/Orders.js';
+import { FarmerPayouts } from './pages/farmer/Payouts.js';
 import { GradingForm } from './pages/field-agent/GradingForm.js';
 import { AdminDashboard } from './pages/admin/Dashboard.js';
 import { AdminLayout } from './pages/admin/AdminLayout.js';
@@ -66,9 +70,16 @@ export default function App() {
 
         <Route path="/farmer" element={
           <PrivateRoute roles={['FARMER']}>
-            <Layout><FarmerDashboard /></Layout>
+            <Layout>
+              <FarmerLayout />
+            </Layout>
           </PrivateRoute>
-        } />
+        }>
+          <Route index element={<FarmerDashboard />} />
+          <Route path="listings" element={<FarmerListings />} />
+          <Route path="orders" element={<FarmerOrders />} />
+          <Route path="payouts" element={<FarmerPayouts />} />
+        </Route>
 
         <Route path="/grade" element={
           <PrivateRoute roles={['FIELD_AGENT']}>
