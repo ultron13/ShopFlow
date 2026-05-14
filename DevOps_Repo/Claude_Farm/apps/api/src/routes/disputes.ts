@@ -19,6 +19,37 @@ const resolveSchema = z.object({
   notes: z.string(),
 });
 
+disputesRouter.get('/', requireAuth('OPS_ADMIN', 'PLATFORM_ADMIN'), async (req, res, next) => {
+  try {
+    const { status, page = '1', limit = '20' } = req.query;
+    const take = Math.min(Number(limit), 100);
+    const skip = (Number(page) - 1) * take;
+
+    const [disputes, total] = await prisma.$transaction([
+      prisma.dispute.findMany({
+        where: { ...(status && { status: status as any }) },
+        include: {
+          order: {
+            select: {
+              id: true,
+              totalAmountCents: true,
+              buyer: { select: { businessName: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+      }),
+      prisma.dispute.count({ where: { ...(status && { status: status as any }) } }),
+    ]);
+
+    res.json({ disputes, meta: { total, page: Number(page), limit: take, totalPages: Math.ceil(total / take) } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 disputesRouter.post('/', requireAuth('BUYER'), validate(createSchema), async (req, res, next) => {
   try {
     const order = await prisma.order.findUnique({ where: { id: req.body.orderId } });

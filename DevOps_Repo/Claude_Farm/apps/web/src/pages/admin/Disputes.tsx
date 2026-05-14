@@ -4,8 +4,9 @@ import { api } from '../../lib/api.js';
 const STATUS_STYLE: Record<string, string> = {
   OPEN: 'bg-red-100 text-red-700',
   UNDER_REVIEW: 'bg-yellow-100 text-yellow-700',
-  RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-gray-100 text-gray-500',
+  RESOLVED_REFUND: 'bg-green-100 text-green-700',
+  RESOLVED_CREDIT: 'bg-teal-100 text-teal-700',
+  REJECTED: 'bg-gray-100 text-gray-500',
 };
 
 interface Dispute {
@@ -26,8 +27,8 @@ export function AdminDisputes() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Dispute | null>(null);
-  const [resolution, setResolution] = useState('');
-  const [resolveStatus, setResolveStatus] = useState<'RESOLVED' | 'CLOSED'>('RESOLVED');
+  const [notes, setNotes] = useState('');
+  const [resolution, setResolution] = useState<'REFUND' | 'CREDIT' | 'REJECTED'>('REFUND');
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -42,15 +43,15 @@ export function AdminDisputes() {
   async function resolve() {
     if (!selected) return;
     setSaving(true);
-    await api.patch(`/disputes/${selected.id}/resolve`, { status: resolveStatus, resolution });
+    await api.patch(`/disputes/${selected.id}/resolve`, { resolution, notes });
     setSaving(false);
     setSelected(null);
-    setResolution('');
+    setNotes('');
     load();
   }
 
   const open = disputes.filter(d => d.status === 'OPEN' || d.status === 'UNDER_REVIEW');
-  const closed = disputes.filter(d => d.status === 'RESOLVED' || d.status === 'CLOSED');
+  const closed = disputes.filter(d => d.status === 'RESOLVED_REFUND' || d.status === 'RESOLVED_CREDIT' || d.status === 'REJECTED');
 
   return (
     <div className="p-6">
@@ -93,7 +94,7 @@ export function AdminDisputes() {
                         <td className="px-4 py-3 text-xs text-gray-400">{new Date(d.createdAt).toLocaleDateString('en-ZA')}</td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => { setSelected(d); setResolution(''); }}
+                            onClick={() => { setSelected(d); setNotes(''); setResolution('REFUND'); }}
                             className="px-3 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
                           >
                             Resolve
@@ -153,19 +154,20 @@ export function AdminDisputes() {
 
             <label className="block text-sm font-medium mb-1">Outcome</label>
             <select
-              value={resolveStatus}
-              onChange={e => setResolveStatus(e.target.value as 'RESOLVED' | 'CLOSED')}
+              value={resolution}
+              onChange={e => setResolution(e.target.value as 'REFUND' | 'CREDIT' | 'REJECTED')}
               className="w-full border rounded p-2 text-sm mb-3"
             >
-              <option value="RESOLVED">Resolved (in buyer's favour)</option>
-              <option value="CLOSED">Closed (rejected / no action)</option>
+              <option value="REFUND">Refund — return payment to buyer</option>
+              <option value="CREDIT">Credit — issue store credit</option>
+              <option value="REJECTED">Rejected — no action taken</option>
             </select>
 
-            <label className="block text-sm font-medium mb-1">Resolution notes</label>
+            <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
               rows={3}
-              value={resolution}
-              onChange={e => setResolution(e.target.value)}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
               placeholder="Describe the action taken..."
               className="w-full border rounded p-2 text-sm mb-4 resize-none"
             />
@@ -174,7 +176,7 @@ export function AdminDisputes() {
               <button onClick={() => setSelected(null)} className="flex-1 border rounded py-2 text-sm">Cancel</button>
               <button
                 onClick={resolve}
-                disabled={!resolution || saving}
+                disabled={!notes || saving}
                 className="flex-1 bg-green-700 text-white rounded py-2 text-sm font-medium disabled:opacity-50"
               >
                 {saving ? 'Saving…' : 'Confirm'}
