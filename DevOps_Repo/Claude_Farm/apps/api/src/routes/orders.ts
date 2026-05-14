@@ -15,8 +15,18 @@ const createSchema = z.object({
 
 ordersRouter.post('/', requireAuth('BUYER'), validate(createSchema), async (req, res, next) => {
   try {
-    const buyer = await prisma.buyer.findUnique({ where: { userId: req.user!.id } });
-    if (!buyer) throw new AppError(404, 'NOT_FOUND', { reason: 'Buyer profile not found' });
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id } });
+    const buyer = await prisma.buyer.upsert({
+      where: { userId: req.user!.id },
+      update: {},
+      create: {
+        userId: req.user!.id,
+        businessName: user.name,
+        contactPhone: user.phone,
+        deliveryAddress: 'To be completed',
+        deliveryCity: 'Johannesburg',
+      },
+    });
 
     const listingIds = req.body.items.map((i: { listingId: string }) => i.listingId);
     const listings = await prisma.listing.findMany({
