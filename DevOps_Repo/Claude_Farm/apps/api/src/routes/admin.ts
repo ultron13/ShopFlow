@@ -9,20 +9,26 @@ adminRouter.use(requireAuth('PLATFORM_ADMIN', 'OPS_ADMIN'));
 adminRouter.get('/metrics', async (_req, res, next) => {
   try {
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
     const [gmv, activeListings, pendingOrders, deliveriesToday, payoutsDue, openDisputes] =
       await prisma.$transaction([
-        prisma.payment.aggregate({ where: { type: 'BUYER_PAYMENT', status: 'COMPLETED' }, _sum: { amountCents: true } }),
+        // GMV = all orders that are not cancelled or stuck at pending payment
+        prisma.order.aggregate({
+          where: { status: { notIn: ['PENDING_PAYMENT', 'CANCELLED'] } },
+          _sum: { totalAmountCents: true },
+        }),
         prisma.listing.count({ where: { status: 'ACTIVE' } }),
         prisma.order.count({ where: { status: { in: ['CONFIRMED', 'COLLECTION_SCHEDULED', 'COLLECTED', 'IN_TRANSIT'] } } }),
-        prisma.delivery.count({ where: { scheduledDate: { gte: new Date(now.setHours(0, 0, 0, 0)), lt: new Date(now.setHours(23, 59, 59, 999)) } } }),
+        prisma.delivery.count({ where: { scheduledDate: { gte: todayStart, lt: todayEnd } } }),
         prisma.payment.count({ where: { type: 'FARMER_PAYOUT', status: 'PENDING', dueAt: { lte: in48h } } }),
         prisma.dispute.count({ where: { status: 'OPEN' } }),
       ]);
 
     res.json({
-      gmvCents: gmv._sum.amountCents ?? 0,
+      gmvCents: gmv._sum.totalAmountCents ?? 0,
       activeListings,
       pendingOrders,
       deliveriesToday,

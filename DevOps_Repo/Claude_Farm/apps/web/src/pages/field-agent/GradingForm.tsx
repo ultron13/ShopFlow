@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useOfflineQueue, enqueue } from '../../hooks/useOfflineQueue.js';
 import { api } from '../../lib/api.js';
 
@@ -10,7 +11,8 @@ interface GradeSubmission {
   actualWeightKg: number;
 }
 
-export function GradingForm({ collectionId }: { collectionId?: string }) {
+export function GradingForm() {
+  const { collectionId } = useParams<{ collectionId?: string }>();
   useOfflineQueue();
   const [form, setForm] = useState<GradeSubmission>({
     grade: 'A',
@@ -24,8 +26,7 @@ export function GradingForm({ collectionId }: { collectionId?: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const id = collectionId ?? prompt('Collection ID:');
-    if (!id) return;
+    if (!collectionId) return;
 
     try {
       await api.post(`/collections/${id}/grade`, {
@@ -41,6 +42,15 @@ export function GradingForm({ collectionId }: { collectionId?: string }) {
       setOffline(true);
       setSubmitted(true);
     }
+  }
+
+  if (!collectionId) {
+    return (
+      <div className="max-w-md mx-auto p-6 text-center text-gray-500">
+        <p className="font-medium">No collection assigned</p>
+        <p className="text-sm mt-1">Open the link sent by your ops admin to grade a collection.</p>
+      </div>
+    );
   }
 
   if (submitted) {
