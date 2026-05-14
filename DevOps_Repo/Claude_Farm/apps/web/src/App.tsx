@@ -8,6 +8,12 @@ import { Orders } from './pages/buyer/Orders.js';
 import { FarmerDashboard } from './pages/farmer/Dashboard.js';
 import { GradingForm } from './pages/field-agent/GradingForm.js';
 import { AdminDashboard } from './pages/admin/Dashboard.js';
+import { AdminLayout } from './pages/admin/AdminLayout.js';
+import { AdminOrders } from './pages/admin/Orders.js';
+import { OrderDetail } from './pages/admin/OrderDetail.js';
+import { AdminDeliveries } from './pages/admin/Deliveries.js';
+import { AdminPayments } from './pages/admin/Payments.js';
+import { AdminDisputes } from './pages/admin/Disputes.js';
 
 const ROLE_HOME: Record<string, string> = {
   BUYER: '/listings',
@@ -78,9 +84,18 @@ export default function App() {
 
         <Route path="/admin" element={
           <PrivateRoute roles={['OPS_ADMIN', 'PLATFORM_ADMIN']}>
-            <Layout><AdminDashboard /></Layout>
+            <Layout>
+              <AdminLayout />
+            </Layout>
           </PrivateRoute>
-        } />
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="orders/:id" element={<OrderDetail />} />
+          <Route path="deliveries" element={<AdminDeliveries />} />
+          <Route path="payments" element={<AdminPayments />} />
+          <Route path="disputes" element={<AdminDisputes />} />
+        </Route>
 
         <Route path="/" element={<RoleHome />} />
         <Route path="*" element={<RoleHome />} />

@@ -65,6 +65,30 @@ adminRouter.patch('/users/:id/deactivate', requireAuth('PLATFORM_ADMIN'), async 
   }
 });
 
+adminRouter.get('/deliveries', async (req, res, next) => {
+  try {
+    const deliveries = await prisma.delivery.findMany({
+      orderBy: { scheduledDate: 'desc' },
+      include: {
+        stops: {
+          include: {
+            order: {
+              select: {
+                id: true,
+                totalAmountCents: true,
+                buyer: { select: { businessName: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    res.json({ deliveries });
+  } catch (err) {
+    next(err);
+  }
+});
+
 adminRouter.get('/audit-logs', requireAuth('PLATFORM_ADMIN'), async (req, res, next) => {
   try {
     const { entityType, entityId, userId, from, to, page = '1', limit = '50' } = req.query;
