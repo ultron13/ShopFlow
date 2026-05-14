@@ -10,7 +10,7 @@ const NAV_ITEMS: Record<string, { label: string; path: string }[]> = {
     { label: 'My Listings', path: '/farmer' },
   ],
   FIELD_AGENT: [
-    { label: 'Collections', path: '/grade' },
+    { label: 'Collections', path: '/agent/collections' },
   ],
   OPS_ADMIN: [
     { label: 'Dashboard', path: '/admin' },

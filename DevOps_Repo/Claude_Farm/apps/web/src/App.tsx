@@ -14,6 +14,8 @@ import { FarmerListings } from './pages/farmer/Listings.js';
 import { FarmerOrders } from './pages/farmer/Orders.js';
 import { FarmerPayouts } from './pages/farmer/Payouts.js';
 import { GradingForm } from './pages/field-agent/GradingForm.js';
+import { AgentLayout } from './pages/field-agent/AgentLayout.js';
+import { AgentCollections } from './pages/field-agent/Collections.js';
 import { AdminDashboard } from './pages/admin/Dashboard.js';
 import { AdminLayout } from './pages/admin/AdminLayout.js';
 import { AdminOrders } from './pages/admin/Orders.js';
@@ -25,7 +27,7 @@ import { AdminDisputes } from './pages/admin/Disputes.js';
 const ROLE_HOME: Record<string, string> = {
   BUYER: '/buyer/listings',
   FARMER: '/farmer',
-  FIELD_AGENT: '/grade',
+  FIELD_AGENT: '/agent/collections',
   OPS_ADMIN: '/admin',
   PLATFORM_ADMIN: '/admin',
 };
@@ -90,17 +92,21 @@ export default function App() {
           <Route path="payouts" element={<FarmerPayouts />} />
         </Route>
 
-        <Route path="/grade" element={
-          <PrivateRoute roles={['FIELD_AGENT']}>
-            <Layout><GradingForm /></Layout>
-          </PrivateRoute>
-        } />
+        {/* Redirect old /grade links */}
+        <Route path="/grade" element={<Navigate to="/agent/collections" replace />} />
+        <Route path="/grade/:collectionId" element={<Navigate to="/agent/collections" replace />} />
 
-        <Route path="/grade/:collectionId" element={
+        <Route path="/agent" element={
           <PrivateRoute roles={['FIELD_AGENT']}>
-            <Layout><GradingForm /></Layout>
+            <Layout>
+              <AgentLayout />
+            </Layout>
           </PrivateRoute>
-        } />
+        }>
+          <Route index element={<Navigate to="/agent/collections" replace />} />
+          <Route path="collections" element={<AgentCollections />} />
+          <Route path="collections/:collectionId" element={<GradingForm />} />
+        </Route>
 
         <Route path="/admin" element={
           <PrivateRoute roles={['OPS_ADMIN', 'PLATFORM_ADMIN']}>
