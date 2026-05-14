@@ -9,6 +9,7 @@ import { paymentsRouter } from './payments.js';
 import { disputesRouter } from './disputes.js';
 import { adminRouter } from './admin.js';
 import { farmerRouter } from './farmer.js';
+import { buyerRouter } from './buyer.js';
 
 export const router = Router();
 
@@ -22,3 +23,4 @@ router.use('/payments', paymentsRouter);
 router.use('/disputes', disputesRouter);
 router.use('/admin', adminRouter);
 router.use('/farmer', farmerRouter);
+router.use('/buyer', buyerRouter);

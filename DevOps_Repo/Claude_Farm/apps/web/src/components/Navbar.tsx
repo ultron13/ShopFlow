@@ -3,8 +3,8 @@ import { useAuthStore } from '../hooks/useAuth.js';
 
 const NAV_ITEMS: Record<string, { label: string; path: string }[]> = {
   BUYER: [
-    { label: 'Produce', path: '/listings' },
-    { label: 'My Orders', path: '/orders' },
+    { label: 'Produce', path: '/buyer/listings' },
+    { label: 'My Orders', path: '/buyer/orders' },
   ],
   FARMER: [
     { label: 'My Listings', path: '/farmer' },

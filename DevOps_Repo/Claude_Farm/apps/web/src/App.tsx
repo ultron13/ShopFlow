@@ -5,6 +5,9 @@ import { Login } from './pages/auth/Login.js';
 import { Register } from './pages/auth/Register.js';
 import { Listings } from './pages/buyer/Listings.js';
 import { Orders } from './pages/buyer/Orders.js';
+import { BuyerLayout } from './pages/buyer/BuyerLayout.js';
+import { BuyerOrderDetail } from './pages/buyer/OrderDetail.js';
+import { BuyerProfile } from './pages/buyer/Profile.js';
 import { FarmerDashboard } from './pages/farmer/Dashboard.js';
 import { FarmerLayout } from './pages/farmer/FarmerLayout.js';
 import { FarmerListings } from './pages/farmer/Listings.js';
@@ -20,7 +23,7 @@ import { AdminPayments } from './pages/admin/Payments.js';
 import { AdminDisputes } from './pages/admin/Disputes.js';
 
 const ROLE_HOME: Record<string, string> = {
-  BUYER: '/listings',
+  BUYER: '/buyer/listings',
   FARMER: '/farmer',
   FIELD_AGENT: '/grade',
   OPS_ADMIN: '/admin',
@@ -56,17 +59,23 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/listings" element={
-          <PrivateRoute roles={['BUYER']}>
-            <Layout><Listings /></Layout>
-          </PrivateRoute>
-        } />
+        {/* Redirect old bookmark-style paths */}
+        <Route path="/listings" element={<Navigate to="/buyer/listings" replace />} />
+        <Route path="/orders" element={<Navigate to="/buyer/orders" replace />} />
 
-        <Route path="/orders" element={
+        <Route path="/buyer" element={
           <PrivateRoute roles={['BUYER']}>
-            <Layout><Orders /></Layout>
+            <Layout>
+              <BuyerLayout />
+            </Layout>
           </PrivateRoute>
-        } />
+        }>
+          <Route index element={<Navigate to="/buyer/listings" replace />} />
+          <Route path="listings" element={<Listings />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="orders/:id" element={<BuyerOrderDetail />} />
+          <Route path="profile" element={<BuyerProfile />} />
+        </Route>
 
         <Route path="/farmer" element={
           <PrivateRoute roles={['FARMER']}>
